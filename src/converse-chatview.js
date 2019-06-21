@@ -322,6 +322,7 @@ converse.plugins.add('converse-chatview', {
             events: {
                 'change input.fileupload': 'onFileSelection',
                 'click .chat-msg__action-edit': 'onMessageEditButtonClicked',
+                'click .chat-msg__action-reply': 'onMessageReplyButtonClicked',
                 'click .chatbox-navback': 'showControlBox',
                 'click .close-chatbox-button': 'close',
                 'click .new-msgs-indicator': 'viewUnreadMessages',
@@ -1076,7 +1077,12 @@ converse.plugins.add('converse-chatview', {
                     this.insertIntoTextArea('', true, false);
                 }
             },
-
+            //added
+            onMessageReplyButtonClicked (ev) {
+                ev.preventDefault();
+                //todo: define reply to a message feature
+            },
+            //done adding
             editLaterMessage () {
                 let message;
                 let idx = this.model.messages.findLastIndex('correcting');
