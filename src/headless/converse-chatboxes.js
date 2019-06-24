@@ -705,6 +705,9 @@ converse.plugins.add('converse-chatboxes', {
                     older_versions[message.get('time')] = message.get('message');
                     message.save({
                         'correcting': false,
+                        'replying': false, //added 
+                        'repliesTo': undefined, //added
+                        'replyIs': undefined, //added
                         'edited': (new Date()).toISOString(),
                         'message': attrs.message,
                         'older_versions': older_versions,
