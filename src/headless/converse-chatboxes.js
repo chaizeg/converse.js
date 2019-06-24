@@ -616,12 +616,13 @@ converse.plugins.add('converse-chatboxes', {
              * @param { _converse.Message } message - The message object
              */
             createMessageStanza (message) {
+                const texte = message.get('message');
                 const stanza = $msg({
                         'from': _converse.connection.jid,
                         'to': this.get('jid'),
                         'type': this.get('message_type'),
                         'id': message.get('edited') && _converse.connection.getUniqueId() || message.get('msgid'),
-                    }).c('body').t(message.get('message')).up()
+                    }).c('body').t(texte).up()
                       .c(_converse.ACTIVE, {'xmlns': Strophe.NS.CHATSTATES}).root();
 
                 if (message.get('type') === 'chat') {
@@ -659,6 +660,12 @@ converse.plugins.add('converse-chatboxes', {
                 if (message.get('origin_id')) {
                     stanza.c('origin-id', {'xmlns': Strophe.NS.SID, 'id': message.get('origin_id')}).root();
                 }
+                //XEP-0367 : Message attaching 
+                if(message.get('repliesTo')){
+                    stanza.c('attach-to', {'id': message.get('repliesTo'), 'xmlns': 'urn:xmpp:message-attaching:1'}).root();
+                }
+                console.log('the stanza ');
+                console.log(stanza);
                 return stanza;
             },
 
