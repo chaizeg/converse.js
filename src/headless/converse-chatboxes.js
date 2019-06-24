@@ -692,12 +692,13 @@ converse.plugins.add('converse-chatboxes', {
              *
              * @param {String} text - The chat message text
              * @param {String} spoiler_hint - An optional hint, if the message being sent is a spoiler
+             * @param {Object} extraAttrs - extra attributes, in case a message is a reply to a previous message
              *
              * @example
              * const chat = _converse.api.chats.get('buddy1@example.com');
              * chat.sendMessage('hello world');
              */
-            sendMessage (text, spoiler_hint) {
+            sendMessage (text, spoiler_hint, extraAttrs) {
                 const attrs = this.getOutgoingMessageAttributes(text, spoiler_hint);
                 let message = this.messages.findWhere('correcting')
                 if (message) {
@@ -705,9 +706,6 @@ converse.plugins.add('converse-chatboxes', {
                     older_versions[message.get('time')] = message.get('message');
                     message.save({
                         'correcting': false,
-                        'replying': false, //added 
-                        'repliesTo': undefined, //added
-                        'replyIs': undefined, //added
                         'edited': (new Date()).toISOString(),
                         'message': attrs.message,
                         'older_versions': older_versions,
@@ -718,6 +716,14 @@ converse.plugins.add('converse-chatboxes', {
                 } else {
                     message = this.messages.create(attrs);
                 }
+
+                if(extraAttrs){
+                    message.save({
+                        repliesTo: extraAttrs.repliesTo
+                    });
+                }
+                console.log('rechecking..');
+                console.log(message);
                 _converse.api.send(this.createMessageStanza(message));
                 return true;
             },

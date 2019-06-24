@@ -915,13 +915,16 @@ converse.plugins.add('converse-chatview', {
             async onFormSubmitted (ev) {
                 ev.preventDefault();
                 const textarea = this.el.querySelector('.chat-textarea');
-                let message;
+                let message, extraAttrs;
                 if(this.model.replyInProgress != ''){
                     console.log('there was a reply in progress..');
-                    message = this.model.replyInProgress;
-                    message.save({'message': textarea.value});
+                    extraAttrs = this.model.replyInProgress;
+                    message = textarea.value;
                     this.model.replyInProgress = '';
                     console.log('now there is nth anymore :'+this.model.replyInProgress);
+                    console.log('and to be sent is :'+message);
+                    console.log('with extra attrs:');
+                    console.log(extraAttrs);                    
                 }else{
                     message = textarea.value;
                 }
@@ -947,7 +950,7 @@ converse.plugins.add('converse-chatview', {
                 u.addClass('disabled', textarea);
                 textarea.setAttribute('disabled', 'disabled');
                 if (this.parseMessageForCommands(message) ||
-                    await this.model.sendMessage(message, spoiler_hint)) {
+                    await this.model.sendMessage(message, spoiler_hint, extraAttrs)) {
 
                     hint_el.value = '';
                     textarea.value = '';
@@ -1089,24 +1092,21 @@ converse.plugins.add('converse-chatview', {
             //added
             onMessageReplyButtonClicked (ev) {
                 ev.preventDefault();
-                const idx = this.model.messages.findLastIndex('replying'),
-                currently_replying = idx >=0 ? this.model.messages.at(idx) : null, //message to which we intend to reply to 
-                message_el = u.ancestor(ev.target, '.chat-msg'), //potential ancestor of the message we're typing
-                message = this.model.messages.findWhere({'msgid': message_el.getAttribute('data-msgid')}); //text of message to which we reply
+                const message_el = u.ancestor(ev.target, '.chat-msg'), //html of the ancestor of the message we're typing
+                message = this.model.messages.findWhere({'msgid': message_el.getAttribute('data-msgid')}); //message to which we reply : contains id too
                 console.log('currently replying');
-                console.log(idx); //this is null: fix this
                 console.log(" message el");                
                 console.log(message_el);
                 console.log("message");
                 console.log(message);                
                 if(message){
-                    this.model.replyInProgress.save ({
-                        'replying': true,  
-                        'repliesTo': message
-                    });
+                    this.model.replyInProgress = {
+                        'repliesTo': message_el.getAttribute('data-msgid')
+                    };                    
                 }
                 console.log('reply in progress ');
                 console.log(this.model.replyInProgress);
+                document.getElementsByClassName('chat-textarea')[0].focus(); //setting focus to text area
             },
             //done adding
             editLaterMessage () {
