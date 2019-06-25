@@ -1092,21 +1092,28 @@ converse.plugins.add('converse-chatview', {
             //added
             onMessageReplyButtonClicked (ev) {
                 ev.preventDefault();
-                const message_el = u.ancestor(ev.target, '.chat-msg'), //html of the ancestor of the message we're typing
-                message = this.model.messages.findWhere({'msgid': message_el.getAttribute('data-msgid')}); //message to which we reply : contains id too
-                console.log('currently replying');
-                console.log(" message el");                
-                console.log(message_el);
-                console.log("message");
-                console.log(message);                
-                if(message){
-                    this.model.replyInProgress = {
-                        'repliesTo': message_el.getAttribute('data-msgid')
-                    };                    
+                const message_el = u.ancestor(ev.target, '.chat-msg'), 
+                message = this.model.messages.findWhere({'msgid': message_el.getAttribute('data-msgid')}); 
+                if(!this.model.replyInProgress || this.model.replyInProgress &&
+                    this.model.replyInProgress.repliesTo != message_el.getAttribute('data-msgid')){
+                        console.log('currently replying');
+                        console.log(" message el");                
+                        console.log(message_el);
+                        console.log("message");
+                        console.log(message);                
+                        if(message){
+                            this.model.replyInProgress = {
+                                'repliesTo': message_el.getAttribute('data-msgid')
+                            };                    
+                        }
+                        console.log('reply in progress ');
+                        console.log(this.model.replyInProgress);
+                        this.focus(); //setting focus to text area
+                    }
+                else{
+                    this.model.replyInProgress = null;
                 }
-                console.log('reply in progress ');
-                console.log(this.model.replyInProgress);
-                this.focus(); //setting focus to text area
+
             },
             //done adding
             editLaterMessage () {
