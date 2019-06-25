@@ -1106,7 +1106,7 @@ converse.plugins.add('converse-chatview', {
                 }
                 console.log('reply in progress ');
                 console.log(this.model.replyInProgress);
-                document.getElementsByClassName('chat-textarea')[0].focus(); //setting focus to text area
+                this.focus(); //setting focus to text area
             },
             //done adding
             editLaterMessage () {

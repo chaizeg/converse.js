@@ -753,7 +753,7 @@ converse.plugins.add('converse-chatboxes', {
                 }
             },
 
-
+            
             async sendFiles (files) {
                 const result = await _converse.api.disco.features.get(Strophe.NS.HTTPUPLOAD, _converse.domain);
                 const item = result.pop();
