@@ -729,6 +729,7 @@ converse.plugins.add('converse-chatboxes', {
                     message.save({
                         repliesTo: extraAttrs.repliesTo
                     });
+                    u.removeClass('replying', extraAttrs.parentNodeRef);
                 }
                 console.log('rechecking..');
                 console.log(message);

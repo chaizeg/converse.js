@@ -1103,15 +1103,19 @@ converse.plugins.add('converse-chatview', {
                         console.log(message);                
                         if(message){
                             this.model.replyInProgress = {
-                                'repliesTo': message_el.getAttribute('data-msgid')
+                                'repliesTo': message_el.getAttribute('data-msgid'),
+                                'parentNodeRef': message_el
                             };                    
                         }
+                        u.addClass('replying', message_el);
                         console.log('reply in progress ');
                         console.log(this.model.replyInProgress);
                         this.focus(); //setting focus to text area
                     }
                 else{
                     this.model.replyInProgress = null;
+                    u.removeClass('replying', message_el);
+                    
                 }
 
             },

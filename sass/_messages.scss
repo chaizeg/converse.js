@@ -104,6 +104,15 @@
                 }
             }
 
+            &.replying{
+                &.groupchat  {
+                    background-color: var(--chatroom-correcting-color);
+                }
+                &:not(.groupchat) {
+                    background-color: var(--chat-correcting-color);
+                }
+            }
+
             .spoiler {
                 margin-top: 0.5em;
             }
