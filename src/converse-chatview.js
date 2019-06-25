@@ -828,6 +828,9 @@ converse.plugins.add('converse-chatview', {
                 } else {
                     this.scrollDown();
                 }
+                if (message.get('correcting')) {
+                    this.insertIntoTextArea(message.get('message'), true, true);
+                }
             },
 
             /**
@@ -843,9 +846,6 @@ converse.plugins.add('converse-chatview', {
                     return;
                 }
                 await this.showMessage(message);
-                if (message.get('correcting')) {
-                    this.insertIntoTextArea(message.get('message'), true, true);
-                }
                 /**
                  * Triggered once a message has been added to a chatbox.
                  * @event _converse#messageAdded
