@@ -727,7 +727,8 @@ converse.plugins.add('converse-chatboxes', {
 
                 if(extraAttrs){
                     message.save({
-                        repliesTo: extraAttrs.repliesTo
+                        repliesTo: extraAttrs.repliesTo,
+                        parentNodeRef: extraAttrs.parentNodeRef
                     });
                     u.removeClass('replying', extraAttrs.parentNodeRef);
                 }
