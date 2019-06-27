@@ -670,7 +670,7 @@ converse.plugins.add('converse-chatboxes', {
                 return stanza;
             },
 
-            getOutgoingMessageAttributes (text, spoiler_hint) {
+            getOutgoingMessageAttributes (text, spoiler_hint, parentMsg) {
                 const is_spoiler = this.get('composing_spoiler');
                 const origin_id = _converse.connection.getUniqueId();
                 return {
@@ -683,6 +683,7 @@ converse.plugins.add('converse-chatboxes', {
                     'from': _converse.bare_jid,
                     'is_single_emoji': text ? u.isSingleEmoji(text) : false,
                     'sender': 'me',
+                    'repliesTo' : parentMsg,
                     'time': (new Date()).toISOString(),
                     'message': text ? u.httpToGeoUri(u.shortnameToUnicode(text), _converse) : undefined,
                     'is_spoiler': is_spoiler,
@@ -707,7 +708,11 @@ converse.plugins.add('converse-chatboxes', {
              * chat.sendMessage('hello world');
              */
             sendMessage (text, spoiler_hint, extraAttrs) {
-                const attrs = this.getOutgoingMessageAttributes(text, spoiler_hint);
+                var argReply = null;
+                if(extraAttrs){
+                    argReply = extraAttrs.repliesTo;
+                }
+                const attrs = this.getOutgoingMessageAttributes(text, spoiler_hint, argReply);
                 let message = this.messages.findWhere('correcting')
                 if (message) {
                     const older_versions = message.get('older_versions') || {};
@@ -883,6 +888,8 @@ converse.plugins.add('converse-chatboxes', {
                             stanza.getElementsByTagName(_converse.ACTIVE).length && _converse.ACTIVE ||
                             stanza.getElementsByTagName(_converse.GONE).length && _converse.GONE;
                 const attach_to = sizzle(`attach-to[xmlns='urn:xmpp:message-attaching:1']`, stanza).pop();
+                console.log('got it');
+                console.log(attach_to);
                 const replaced_id = this.getReplaceId(stanza)
                 const msgid = replaced_id || stanza.getAttribute('id') || original_stanza.getAttribute('id');
                 const attrs = Object.assign({
