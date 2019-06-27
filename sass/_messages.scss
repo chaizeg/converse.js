@@ -103,7 +103,6 @@
                     background-color: var(--chat-correcting-color);
                 }
             }
-
             &.replying{
                 &.groupchat  {
                     background-color: var(--chatroom-correcting-color);
@@ -112,7 +111,14 @@
                     background-color: var(--chat-correcting-color);
                 }
             }
-
+            &.discussionTree{
+                &.groupchat  {
+                    background-color: var(--chat-disctree-color);
+                }
+                &:not(.groupchat) {
+                    background-color: var(--chat-disctree-color);
+                }
+            }
             .spoiler {
                 margin-top: 0.5em;
             }

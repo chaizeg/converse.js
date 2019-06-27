@@ -665,8 +665,8 @@ converse.plugins.add('converse-chatboxes', {
                 if(message.get('repliesTo')){
                     stanza.c('attach-to', {'id': message.get('repliesTo'), 'xmlns': 'urn:xmpp:message-attaching:1'}).root();
                 }
-                console.log('the stanza ');
-                console.log(stanza);
+                // console.log('the stanza ');
+                // console.log(stanza);
                 return stanza;
             },
 
@@ -727,13 +727,12 @@ converse.plugins.add('converse-chatboxes', {
 
                 if(extraAttrs){
                     message.save({
-                        repliesTo: extraAttrs.repliesTo,
-                        parentNodeRef: extraAttrs.parentNodeRef
+                        repliesTo: extraAttrs.repliesTo
                     });
                     u.removeClass('replying', extraAttrs.parentNodeRef);
                 }
-                console.log('rechecking..');
-                console.log(message);
+                // console.log('rechecking..');
+                // console.log(message);
                 _converse.api.send(this.createMessageStanza(message));
                 return true;
             },
@@ -883,7 +882,7 @@ converse.plugins.add('converse-chatboxes', {
                             stanza.getElementsByTagName(_converse.INACTIVE).length && _converse.INACTIVE ||
                             stanza.getElementsByTagName(_converse.ACTIVE).length && _converse.ACTIVE ||
                             stanza.getElementsByTagName(_converse.GONE).length && _converse.GONE;
-
+                const attach_to = sizzle(`attach-to[xmlns='urn:xmpp:message-attaching:1']`, stanza).pop();
                 const replaced_id = this.getReplaceId(stanza)
                 const msgid = replaced_id || stanza.getAttribute('id') || original_stanza.getAttribute('id');
                 const attrs = Object.assign({
@@ -894,13 +893,13 @@ converse.plugins.add('converse-chatboxes', {
                     'is_single_emoji': text ? u.isSingleEmoji(text) : false,
                     'message': text,
                     'msgid': msgid,
+                    'repliesTo': attach_to? attach_to.getAttribute('id') : null, //added
                     'references': this.getReferencesFromStanza(stanza),
                     'subject': _.propertyOf(stanza.querySelector('subject'))('textContent'),
                     'thread': _.propertyOf(stanza.querySelector('thread'))('textContent'),
                     'time': delay ? dayjs(delay.getAttribute('stamp')).toISOString() : (new Date()).toISOString(),
                     'type': stanza.getAttribute('type')
                 }, this.getStanzaIDs(original_stanza));
-
                 if (attrs.type === 'groupchat') {
                     attrs.from = stanza.getAttribute('from');
                     attrs.nick = Strophe.unescapeNode(Strophe.getResourceFromJid(attrs.from));

@@ -341,6 +341,8 @@ converse.plugins.add('converse-chatview', {
                 'paste .chat-textarea': 'onPaste',
                 'dragover .chat-textarea': 'onDragOver',
                 'drop .chat-textarea': 'onDrop',
+                'mouseover .chat-msg': 'highlightParents',
+                'mouseout .chat-msg' : 'dehighlightParents'
             },
 
             initialize () {
@@ -917,14 +919,14 @@ converse.plugins.add('converse-chatview', {
                 const textarea = this.el.querySelector('.chat-textarea');
                 let message, extraAttrs;
                 if(this.model.replyInProgress != ''){
-                    console.log('there was a reply in progress..');
+                    // console.log('there was a reply in progress..');
                     extraAttrs = this.model.replyInProgress;
                     message = textarea.value;
                     this.model.replyInProgress = '';
-                    console.log('now there is nth anymore :'+this.model.replyInProgress);
-                    console.log('and to be sent is :'+message);
-                    console.log('with extra attrs:');
-                    console.log(extraAttrs);                    
+                    // console.log('now there is nth anymore :'+this.model.replyInProgress);
+                    // console.log('and to be sent is :'+message);
+                    // console.log('with extra attrs:');
+                    // console.log(extraAttrs);                    
                 }else{
                     message = textarea.value;
                 }
@@ -1071,6 +1073,11 @@ converse.plugins.add('converse-chatview', {
                       message = this.model.messages.findWhere({'msgid': message_el.getAttribute('data-msgid')});
 
                 const textarea = this.el.querySelector('.chat-textarea');
+
+                if(this.model.replyInProgress){
+                    this.model.replyInProgress = null;
+                }
+
                 if (textarea.value &&
                         (currently_correcting === null || currently_correcting.get('message') !== textarea.value)) {
                     if (! confirm(__("You have an unsent message which will be lost if you continue. Are you sure?"))) {
@@ -1096,11 +1103,11 @@ converse.plugins.add('converse-chatview', {
                 message = this.model.messages.findWhere({'msgid': message_el.getAttribute('data-msgid')}); 
                 if(!this.model.replyInProgress || this.model.replyInProgress &&
                     this.model.replyInProgress.repliesTo != message_el.getAttribute('data-msgid')){
-                        console.log('currently replying');
-                        console.log(" message el");                
-                        console.log(message_el);
-                        console.log("message");
-                        console.log(message);                
+                        // console.log('currently replying');
+                        // console.log(" message el");                
+                        // console.log(message_el);
+                        // console.log("message");
+                        // console.log(message);                
                         if(message){
                             this.model.replyInProgress = {
                                 'repliesTo': message_el.getAttribute('data-msgid'),
@@ -1108,8 +1115,8 @@ converse.plugins.add('converse-chatview', {
                             };                    
                         }
                         u.addClass('replying', message_el);
-                        console.log('reply in progress ');
-                        console.log(this.model.replyInProgress);
+                        // console.log('reply in progress ');
+                        // console.log(this.model.replyInProgress);
                         this.focus(); //setting focus to text area
                     }
                 else{
@@ -1118,6 +1125,28 @@ converse.plugins.add('converse-chatview', {
                     
                 }
 
+            },
+
+            highlightParents(ev){
+                ev.preventDefault();
+                const message_el = u.ancestor(ev.target, '.chat-msg');
+                u.addClass('discussionTree', message_el);
+                // console.log('le message ');
+                // console.log(message_el);
+                var idParent = message_el.getAttribute('data-parent');
+                var parentRef = document.querySelectorAll(`[data-msgid="${idParent}"`)? document.querySelectorAll(`[data-msgid="${idParent}"`)[0] : null;
+                // console.log('parent is :');
+                // console.log(parentRef);
+                u.addClass('discussionTree', parentRef);
+            },
+
+            dehighlightParents(ev) {
+                ev.preventDefault();
+                const message_el = u.ancestor(ev.target, '.chat-msg'); 
+                u.removeClass('discussionTree', message_el);
+                var idParent = message_el.getAttribute('data-parent');
+                var parentRef = document.querySelectorAll(`[data-msgid="${idParent}"`)? document.querySelectorAll(`[data-msgid="${idParent}"`)[0] : null;
+                u.removeClass('discussionTree', parentRef);
             },
             //done adding
             editLaterMessage () {
