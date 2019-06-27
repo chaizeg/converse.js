@@ -446,6 +446,7 @@ converse.plugins.add('converse-muc-views', {
             events: {
                 'change input.fileupload': 'onFileSelection',
                 'click .chat-msg__action-edit': 'onMessageEditButtonClicked',
+                'click .chat-msg__action-reply': 'onMessageReplyButtonClicked',
                 'click .chatbox-navback': 'showControlBox',
                 'click .close-chatbox-button': 'close',
                 'click .configure-chatroom-button': 'getAndRenderConfigurationForm',
@@ -465,6 +466,8 @@ converse.plugins.add('converse-muc-views', {
                 'input .chat-textarea': 'inputChanged',
                 'dragover .chat-textarea': 'onDragOver',
                 'drop .chat-textarea': 'onDrop',
+                'mouseover .chat-msg': 'highlightParents',
+                'mouseout .chat-msg' : 'dehighlightParents'
             },
 
             initialize () {

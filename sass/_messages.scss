@@ -113,7 +113,7 @@
             }
             &.discussionTree{
                 &.groupchat  {
-                    background-color: var(--chat-disctree-color);
+                    background-color: var(--chatroom-disctree-color);
                 }
                 &:not(.groupchat) {
                     background-color: var(--chat-disctree-color);
