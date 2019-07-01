@@ -1099,6 +1099,7 @@ converse.plugins.add('converse-chatview', {
             //added
             onMessageReplyButtonClicked (ev) {
                 ev.preventDefault();
+
                 const message_el = u.ancestor(ev.target, '.chat-msg'), 
                 message = this.model.messages.findWhere({'msgid': message_el.getAttribute('data-msgid')}); 
                 if(!this.model.replyInProgress || this.model.replyInProgress &&
@@ -1112,10 +1113,12 @@ converse.plugins.add('converse-chatview', {
                         u.addClass('replying', message_el);
                         this.focus(); //setting focus to text area
                     }
+
                 else{
                     this.model.replyInProgress = null;
                     u.removeClass('replying', message_el);
                 }
+
             },
 
             highlightParents(ev){
@@ -1123,7 +1126,13 @@ converse.plugins.add('converse-chatview', {
                 const message_el = u.ancestor(ev.target, '.chat-msg');
                 u.addClass('discussionTree', message_el);
                 var idParent = message_el.getAttribute('data-parent');
+                var currentId= message_el.getAttribute('data-msgid');
                 var parentRef = document.querySelectorAll(`[data-msgid="${idParent}"`)? document.querySelectorAll(`[data-msgid="${idParent}"`)[0] : null;
+                //highlighting kids
+                var kids = document.querySelectorAll(`[data-parent="${currentId}"`);
+                for(var i = 0 ; i < kids.length ; i++){
+                    u.addClass('discussionTreeKids', kids[i]);
+                }
                 u.addClass('discussionTreeParent', parentRef);
             },
 
@@ -1132,6 +1141,12 @@ converse.plugins.add('converse-chatview', {
                 const message_el = u.ancestor(ev.target, '.chat-msg'); 
                 u.removeClass('discussionTree', message_el);
                 var idParent = message_el.getAttribute('data-parent');
+                var currentId= message_el.getAttribute('data-msgid');
+                //dehighlighting kids
+                var kids = document.querySelectorAll(`[data-parent="${currentId}"`);
+                for(var i = 0 ; i < kids.length ; i++){
+                    u.removeClass('discussionTreeKids', kids[i]);
+                }
                 var parentRef = document.querySelectorAll(`[data-msgid="${idParent}"`)? document.querySelectorAll(`[data-msgid="${idParent}"`)[0] : null;
                 u.removeClass('discussionTreeParent', parentRef);
             },

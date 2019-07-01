@@ -138,10 +138,28 @@
                     transform: rotate(90deg); 
                 }*/
                 &.groupchat  {
-                    background-color: var(--chatroom-disctree-color);
+                    background-color: yellow;
                 }
                 &:not(.groupchat) {
-                    background-color: var(--chat-disctree-color);
+                    background-color: yellow;
+                }  
+            }
+
+            &.discussionTreeKids{
+                /*cursor: pointer; 
+                user-select: none; 
+                &::before {
+                    content: "\25B6";
+                    color: black;
+                    display: inline-block;
+                    margin-right: 6px;
+                    transform: rotate(90deg); 
+                }*/
+                &.groupchat  {
+                    background-color: rgb(124, 144, 231);
+                }
+                &:not(.groupchat) {
+                    background-color: rgb(124, 144, 231);
                 }
             }
             .spoiler {
