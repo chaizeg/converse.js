@@ -863,7 +863,10 @@ converse.plugins.add('converse-chatboxes', {
                 if (type === 'error') {
                     return this.getErrorMessage(stanza);
                 } else {
-                    return _.propertyOf(stanza.querySelector('body'))('textContent');
+                    const body = stanza.querySelector('body');
+                    if (body) {
+                        return body.textContent.trim();
+                    }
                 }
             },
 
@@ -1248,7 +1251,7 @@ converse.plugins.add('converse-chatboxes', {
              * @namespace _converse.api.chats
              * @memberOf _converse.api
              */
-            'chats': {
+            chats: {
                 /**
                  * @method _converse.api.chats.create
                  * @param {string|string[]} jid|jids An jid or array of jids

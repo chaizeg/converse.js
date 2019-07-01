@@ -799,11 +799,6 @@ converse.plugins.add('converse-chatview', {
              * @param { _converse.Message } message - The message object
              */
             async showMessage (message) {
-                if (!u.isNewMessage(message) && u.isEmptyMessage(message)) {
-                    // Handle archived or delayed messages without any message
-                    // text to show.
-                    return message.destroy();
-                }
                 const view = this.add(message.get('id'), new _converse.MessageView({'model': message}));
                 await view.render();
 
@@ -846,6 +841,10 @@ converse.plugins.add('converse-chatview', {
                 if (id && this.get(id)) {
                     // We already have a view for this message
                     return;
+                }
+                if (!u.isNewMessage(message) && u.isEmptyMessage(message)) {
+                    // Ignore archived or delayed messages without any text to show.
+                    return message.destroy();
                 }
                 await this.showMessage(message);
                 /**
@@ -921,15 +920,16 @@ converse.plugins.add('converse-chatview', {
                 if(this.model.replyInProgress != ''){
                     // console.log('there was a reply in progress..');
                     extraAttrs = this.model.replyInProgress;
-                    message = textarea.value;
+                    message = textarea.value.trim();
                     this.model.replyInProgress = '';
                     // console.log('now there is nth anymore :'+this.model.replyInProgress);
                     // console.log('and to be sent is :'+message);
                     // console.log('with extra attrs:');
                     // console.log(extraAttrs);                    
                 }else{
-                    message = textarea.value;
+                    message = textarea.value.trim();
                 }
+
                 if (_converse.message_limit && message.length > _converse.message_limit) {
                     return;
                 }
@@ -1011,7 +1011,7 @@ converse.plugins.add('converse-chatview', {
                     // When ctrl is pressed, no chars are entered into the textarea.
                     return;
                 }
-                if (!ev.shiftKey && !ev.altKey) {
+                if (!ev.shiftKey && !ev.altKey && !ev.metaKey) {
                     if (ev.keyCode === _converse.keycodes.FORWARD_SLASH) {
                         // Forward slash is used to run commands. Nothing to do here.
                         return;

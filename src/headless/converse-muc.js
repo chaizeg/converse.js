@@ -300,7 +300,7 @@ converse.plugins.add('converse-muc', {
                 if (conn_status !==  converse.ROOMSTATUS.ENTERED) {
                     // We're not restoring a room from cache, so let's clear
                     // the cache (which might be stale).
-                    this.clearOccupants();
+                    this.removeNonMembers();
                     await this.refreshRoomFeatures();
                     this.clearMessages(); // XXX: This should be conditional
                     this.fetchMessages();
@@ -310,7 +310,7 @@ converse.plugins.add('converse-muc', {
                         return;
                     }
                     this.join();
-                } else {
+                } else if (!(await this.rejoinIfNecessary())) {
                     this.features.fetch();
                     this.fetchMessages();
                 }
@@ -328,14 +328,10 @@ converse.plugins.add('converse-muc', {
                 }
             },
 
-            clearOccupants () {
-                try {
-                    this.occupants.reset();
-                } catch (e) {
-                    this.occupants.trigger('reset');
-                    _converse.log(e, Strophe.LogLevel.ERROR);
-                } finally {
-                    this.occupants.browserStorage._clear();
+            removeNonMembers () {
+                const non_members = this.occupants.filter(o => !o.isMember());
+                if (non_members.length) {
+                    this.occupants.remove(non_members);
                 }
             },
 
@@ -1968,9 +1964,10 @@ converse.plugins.add('converse-muc', {
         _converse.api.listen.on('statusInitialized', () => {
             window.addEventListener(_converse.unloadevent, () => {
                 const using_websocket = _converse.api.connection.isType('websocket');
-                if (using_websocket && !_converse.enable_smacks) {
-                    // For non-SMACKS websocket connections, we disconnect all
-                    // chatrooms when the page unloads.
+                if (using_websocket &&
+                        (!_converse.enable_smacks || !_converse.session.get('smacks_stream_id'))) {
+                    // For non-SMACKS websocket connections, or non-resumeable
+                    // connections, we disconnect all chatrooms when the page unloads.
                     // See issue #1111
                     disconnectChatRooms();
                 }

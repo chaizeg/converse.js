@@ -22,10 +22,10 @@
 - New config option [muc_show_join_leave_status](https://conversejs.org/docs/html/configuration.html#muc-show-join-leave-status)
 - New config option [message_limit](https://conversejs.org/docs/html/configuration.html#message-limit)
 - New config option [singleton](https://conversejs.org/docs/html/configuration.html#singleton)
-- New config option [muc_mention_autocomplete_min_chars](https://conversejs.org/docs/html/configuration.html#muc-mention-autocomplete-min-chars)
   By setting this option to `false` and `view_mode` to `'embedded'`, it's now possible to
   "embed" the full app and not just a single chat. To embed just a single chat, it's now
   necessary to explicitly set `singleton` to `true`.
+- New config option [muc_mention_autocomplete_min_chars](https://conversejs.org/docs/html/configuration.html#muc-mention-autocomplete-min-chars)
 - New event: [chatBoxBlurred](https://conversejs.org/docs/html/api/-_converse.html#event:chatBoxBlurred)
 - New event: [chatReconnected](https://conversejs.org/docs/html/api/-_converse.html#event:chatReconnected)
 - #316: Add support for XEP-0198 Stream Management
@@ -37,6 +37,7 @@
 - #1445: Participants list uses big font in embedded mode
 - #1455: Avatar in controlbox status-view not updated
 - #1465: When highlighting a roster contact, they're incorrectly shown as online
+- #1494: Trim whitespace around messages
 - #1495: Mentions should always include a URI attribute
 - #1502: Fatal error when using prebind
 - #1532: Converse reloads on enter pressed in the filter box

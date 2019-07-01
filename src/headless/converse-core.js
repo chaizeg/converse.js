@@ -506,14 +506,15 @@ _converse.initConnection = function () {
 
 
 async function initUserSession (jid) {
-    // XXX: Important to use full JID, otherwise we run into a bug where two
-    // tabs with share the same XEP-0198 SM-ID, causing them to go into a
-    // reconnection-loop.
-    const id = `converse.session-${jid}`;
+    const bare_jid = Strophe.getBareJidFromJid(jid).toLowerCase();
+    const id = `converse.session-${bare_jid}`;
     if (!_converse.session || _converse.session.get('id') !== id) {
         _converse.session = new Backbone.Model({id});
         _converse.session.browserStorage = new BrowserStorage.session(id);
         await new Promise(r => _converse.session.fetch({'success': r, 'error': r}));
+        if (_converse.session.get('active')) {
+            _converse.session.clear();
+        }
         /**
          * Triggered once the user's session has been initialized. The session is a
          * cache which stores information about the user's current session.
@@ -525,11 +526,16 @@ async function initUserSession (jid) {
 }
 
 async function setUserJID (jid) {
+    await initUserSession(jid);
+    jid = _converse.session.get('jid') || jid;
     if (!Strophe.getResourceFromJid(jid)) {
         jid = jid.toLowerCase() + _converse.generateResource();
     }
-    jid = jid.toLowerCase();
-    await initUserSession(jid);
+    // Set JID on the connection object so that when we call
+    // `connection.bind` the new resource is found by Strophe.js
+    // and sent to the XMPP server.
+    _converse.connection.jid = jid;
+
     _converse.jid = jid;
     _converse.bare_jid = Strophe.getBareJidFromJid(jid);
     _converse.resource = Strophe.getResourceFromJid(jid);
@@ -538,13 +544,15 @@ async function setUserJID (jid) {
        'jid': jid,
        'bare_jid': _converse.bare_jid,
        'resource': _converse.resource,
-       'domain': _converse.domain
+       'domain': _converse.domain,
+       'active': true
     });
     /**
      * Triggered whenever the user's JID has been updated
      * @event _converse#setUserJID
      */
     _converse.api.trigger('setUserJID');
+    return jid;
 }
 
 
@@ -819,6 +827,11 @@ _converse.initialize = async function (settings, callback) {
         window.addEventListener('mousemove', _converse.onUserActivity);
         const options = {'once': true, 'passive': true};
         window.addEventListener(_converse.unloadevent, _converse.onUserActivity, options);
+        window.addEventListener(_converse.unloadevent, () => {
+            if (_converse.session) {
+                _converse.session.save('active', false);
+            }
+        });
         _converse.everySecondTrigger = window.setInterval(_converse.onEverySecond, 1000);
     };
 
@@ -1461,18 +1474,12 @@ _converse.api = {
                     return;
                 }
             }
-            let credentials;
-            if (jid && password) {
-                credentials = { jid, password };
-            } else if (u.isValidJID(_converse.jid) && _converse.password) {
-                credentials = {
-                    jid: _converse.jid,
-                    password: _converse.password
-                };
+            if (jid || _converse.jid) {
+                // Reassign because we might have gained a resource
+                jid = await setUserJID(jid || _converse.jid);
             }
-            if (credentials && credentials.jid) {
-                await setUserJID(jid || _converse.jid);
-            }
+            password = password || _converse.password;
+            const credentials = (jid && password) ? { jid, password } : null;
             _converse.attemptNonPreboundSession(credentials, reconnecting);
         },
 
