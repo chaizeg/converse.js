@@ -1103,11 +1103,6 @@ converse.plugins.add('converse-chatview', {
                 message = this.model.messages.findWhere({'msgid': message_el.getAttribute('data-msgid')}); 
                 if(!this.model.replyInProgress || this.model.replyInProgress &&
                     this.model.replyInProgress.repliesTo != message_el.getAttribute('data-msgid')){
-                        // console.log('currently replying');
-                        // console.log(" message el");                
-                        // console.log(message_el);
-                        // console.log("message");
-                        // console.log(message);                
                         if(message){
                             this.model.replyInProgress = {
                                 'repliesTo': message_el.getAttribute('data-msgid'),
@@ -1115,29 +1110,21 @@ converse.plugins.add('converse-chatview', {
                             };                    
                         }
                         u.addClass('replying', message_el);
-                        // console.log('reply in progress ');
-                        // console.log(this.model.replyInProgress);
                         this.focus(); //setting focus to text area
                     }
                 else{
                     this.model.replyInProgress = null;
                     u.removeClass('replying', message_el);
-                    
                 }
-
             },
 
             highlightParents(ev){
                 ev.preventDefault();
                 const message_el = u.ancestor(ev.target, '.chat-msg');
                 u.addClass('discussionTree', message_el);
-                // console.log('le message ');
-                // console.log(message_el);
                 var idParent = message_el.getAttribute('data-parent');
                 var parentRef = document.querySelectorAll(`[data-msgid="${idParent}"`)? document.querySelectorAll(`[data-msgid="${idParent}"`)[0] : null;
-                // console.log('parent is :');
-                // console.log(parentRef);
-                u.addClass('discussionTree', parentRef);
+                u.addClass('discussionTreeParent', parentRef);
             },
 
             dehighlightParents(ev) {
@@ -1146,7 +1133,7 @@ converse.plugins.add('converse-chatview', {
                 u.removeClass('discussionTree', message_el);
                 var idParent = message_el.getAttribute('data-parent');
                 var parentRef = document.querySelectorAll(`[data-msgid="${idParent}"`)? document.querySelectorAll(`[data-msgid="${idParent}"`)[0] : null;
-                u.removeClass('discussionTree', parentRef);
+                u.removeClass('discussionTreeParent', parentRef);
             },
             //done adding
             editLaterMessage () {

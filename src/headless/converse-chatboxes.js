@@ -888,8 +888,8 @@ converse.plugins.add('converse-chatboxes', {
                             stanza.getElementsByTagName(_converse.ACTIVE).length && _converse.ACTIVE ||
                             stanza.getElementsByTagName(_converse.GONE).length && _converse.GONE;
                 const attach_to = sizzle(`attach-to[xmlns='urn:xmpp:message-attaching:1']`, stanza).pop();
-                console.log('got it');
-                console.log(attach_to);
+                // console.log('got it');
+                // console.log(attach_to);
                 const replaced_id = this.getReplaceId(stanza)
                 const msgid = replaced_id || stanza.getAttribute('id') || original_stanza.getAttribute('id');
                 const attrs = Object.assign({

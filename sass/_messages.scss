@@ -112,6 +112,31 @@
                 }
             }
             &.discussionTree{
+                /*cursor: pointer; 
+                user-select: none; 
+                &::before {
+                    content: "\25B6";
+                    color: black;
+                    display: inline-block;
+                    margin-right: 6px;
+                }*/
+                &.groupchat  {
+                    background-color: var(--chatroom-disctree-color);
+                }
+                &:not(.groupchat) {
+                    background-color: var(--chat-disctree-color);
+                }
+            }
+            &.discussionTreeParent{
+                /*cursor: pointer; 
+                user-select: none; 
+                &::before {
+                    content: "\25B6";
+                    color: black;
+                    display: inline-block;
+                    margin-right: 6px;
+                    transform: rotate(90deg); 
+                }*/
                 &.groupchat  {
                     background-color: var(--chatroom-disctree-color);
                 }
