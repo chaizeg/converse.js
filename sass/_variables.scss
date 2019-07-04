@@ -58,6 +58,8 @@ $mobile_portrait_length: 480px !default;
     --chat-correcting-color: var(--chat-head-color-lighten-50-percent);
     --chat-replying-color: var(--chat-head-color-darken-50-percent);
     --chat-disctree-color: rgba(86, 240, 86, 0.575);
+    --chat-disctreeparent-color: yellow;
+    --chat-disctreekid-color: palevioletred;
 
 
     --chat-topic-display: block;
@@ -122,6 +124,8 @@ $mobile_portrait_length: 480px !default;
     --chatroom-width: 400px;
     --chatroom-correcting-color: #fadfd7; // lighten($red, 30%)
     --chatroom-disctree-color: #f5ccbe; 
+    --chatroom-disctreeparent-color: yellow;
+    --chatroom-disctreekid-color: palevioletred;
     --chatroom-badge-color: var(--chatroom-head-color);
     --chatroom-badge-hover-color: var(--chatroom-head-color-dark);
 

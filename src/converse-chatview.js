@@ -1119,7 +1119,70 @@ converse.plugins.add('converse-chatview', {
                     u.removeClass('replying', message_el);
                 }
 
-            },
+            },  
+            // dw_getScrollOffsets() {
+            //     var doc = document, w = window;
+            //     var x, y, docEl;
+                
+            //     if ( typeof w.pageYOffset === 'number' ) {
+            //         x = w.pageXOffset;
+            //         y = w.pageYOffset;
+            //     } else {
+            //         docEl = (doc.compatMode && doc.compatMode === 'CSS1Compat')?
+            //                 doc.documentElement: doc.body;
+            //         x = docEl.scrollLeft;
+            //         y = docEl.scrollTop;
+            //     }
+            //     return {x:x, y:y};
+            // },
+
+            // dw_getPageOffsets(el) {
+            //     var sOff = this.dw_getScrollOffsets(), left = 0, top = 0, props;
+                
+            //     if ( el.getBoundingClientRect ) {
+            //         props = el.getBoundingClientRect();
+            //         left = props.left + sOff.x;
+            //         top = props.top + sOff.y;
+            //     } else { // for older browsers
+            //         do {
+            //             left += el.offsetLeft;
+            //             top += el.offsetTop;
+            //         } while ( (el = el.offsetParent) );
+            //     }
+            //     return { x: Math.round(left), y: Math.round(top) };
+            // },
+            // getPositionXY(element) { 
+            //     var rect = element.getBoundingClientRect(); 
+            //     console.log('X: ' + rect.x + ', ' + 'Y: ' + rect.y); 
+            //     return rect;
+            // },
+
+            // createSVG(par) {
+            //     var svg = document.getElementById("svg-canvas");
+            //     if (null === svg) {
+            //       svg = document.createElementNS("http://www.w3.org/2000/svg", 
+            //                                      "svg");
+            //       svg.setAttribute('id', 'svg-canvas');
+            //       svg.setAttribute('style', 'position:absolute;top:0px;left:0px');
+            //       svg.setAttribute('width', document.body.clientWidth);
+            //       svg.setAttribute('height', document.body.clientHeight);
+            //       svg.setAttributeNS("http://www.w3.org/2000/xmlns/", 
+            //                          "xmlns:xlink", 
+            //                          "http://www.w3.org/1999/xlink");
+            //       par.appendChild(svg);
+            //     }
+            //     return svg;
+            // },
+
+            // drawCircle(x, y, radius, color, par) {
+            //     var svg = this.createSVG(par);
+            //         var shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            //     shape.setAttributeNS(null, "cx", x);
+            //     shape.setAttributeNS(null, "cy", y);
+            //     shape.setAttributeNS(null, "r",  radius);
+            //     shape.setAttributeNS(null, "fill", color);
+            //     svg.appendChild(shape);
+            // },
 
             highlightParents(ev){
                 ev.preventDefault();
@@ -1128,12 +1191,32 @@ converse.plugins.add('converse-chatview', {
                 var idParent = message_el.getAttribute('data-parent');
                 var currentId= message_el.getAttribute('data-msgid');
                 var parentRef = document.querySelectorAll(`[data-msgid="${idParent}"`)? document.querySelectorAll(`[data-msgid="${idParent}"`)[0] : null;
+                console.log(parentRef);
                 //highlighting kids
                 var kids = document.querySelectorAll(`[data-parent="${currentId}"`);
                 for(var i = 0 ; i < kids.length ; i++){
                     u.addClass('discussionTreeKids', kids[i]);
                 }
                 u.addClass('discussionTreeParent', parentRef);
+                //drawing tree : first test
+                //circle next to parent first
+                var par = document.getElementsByClassName('chat-content')[0];
+                var parentSpace = document.querySelectorAll(`[data-id="${idParent}"`)? document.querySelectorAll(`[data-id="${idParent}"`)[0] : null;
+                if(parentSpace && parentSpace.childNodes && parentSpace.childNodes[1]){
+                    parentSpace.childNodes[1].style.opacity = 1;
+                }
+                //caret right next to current symbol and kids
+                var currentSpace = document.querySelectorAll(`[data-id="${currentId}"`)? document.querySelectorAll(`[data-id="${currentId}"`)[1] : null;
+                if(currentSpace && currentSpace.childNodes && currentSpace.childNodes[1]){
+                    currentSpace.childNodes[1].style.opacity = 1;
+                }
+                for(i = 0; i < kids.length; i++){
+                    var childId = kids[i].getAttribute('data-msgid');
+                    var childSpace =document.querySelectorAll(`[data-id="${childId}"`)? document.querySelectorAll(`[data-id="${childId}"`)[2] : null;
+                    if(childSpace && childSpace.childNodes && childSpace.childNodes[1]){
+                        childSpace.childNodes[1].style.opacity = 1;
+                    }
+                }
             },
 
             dehighlightParents(ev) {
@@ -1149,6 +1232,23 @@ converse.plugins.add('converse-chatview', {
                 }
                 var parentRef = document.querySelectorAll(`[data-msgid="${idParent}"`)? document.querySelectorAll(`[data-msgid="${idParent}"`)[0] : null;
                 u.removeClass('discussionTreeParent', parentRef);
+                var parentSpace = document.querySelectorAll(`[data-id="${idParent}"`)? document.querySelectorAll(`[data-id="${idParent}"`)[0] : null;
+                if(parentSpace && parentSpace.childNodes && parentSpace.childNodes[1]){
+                    parentSpace.childNodes[1].style.opacity = 0;
+                }
+
+                //caret right next to current symbol and kids
+                var currentSpace = document.querySelectorAll(`[data-id="${currentId}"`)? document.querySelectorAll(`[data-id="${currentId}"`)[1] : null;
+                if(currentSpace && currentSpace.childNodes && currentSpace.childNodes[1]){
+                    currentSpace.childNodes[1].style.opacity = 0;
+                }
+                for(i = 0; i < kids.length; i++){
+                    var childId = kids[i].getAttribute('data-msgid');
+                    var childSpace =document.querySelectorAll(`[data-id="${childId}"`)? document.querySelectorAll(`[data-id="${childId}"`)[2] : null;
+                    if(childSpace && childSpace.childNodes && childSpace.childNodes[1]){
+                        childSpace.childNodes[1].style.opacity = 0;
+                    }
+                }
             },
             //done adding
             editLaterMessage () {

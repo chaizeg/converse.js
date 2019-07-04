@@ -1,6 +1,15 @@
 <div class="message chat-msg {{{o.type}}} {[ if (o.is_me_message) { ]} chat-msg--action {[ } ]} {{{o.extra_classes}}}"
         data-isodate="{{{o.time}}}" data-msgid="{{{o.msgid}}}" data-from="{{{o.from}}}" data-encrypted="{{{o.is_encrypted}}}" data-parent="{{{o.repliesTo}}}">
-    {[ if (o.type !== 'headline' && !o.is_me_message) { ]}
+        <div class="parentSpace" data-id="{{{o.msgid}}}">
+             <i class="fas fa-circle" style="opacity: 0;"></i>
+            </div>
+            <div class="currentSpace" data-id="{{{o.msgid}}}">
+                <i class="fas fa-caret-right" style="font-size: 30px; opacity: 0;"></i>
+            </div>
+            <div class="childSpace" data-id="{{{o.msgid}}}">
+                <i class="fas fa-caret-right" style="font-size: 30px; opacity: 0;"></i>
+            </div>
+        {[ if (o.type !== 'headline' && !o.is_me_message) { ]}
     <canvas class="avatar chat-msg__avatar" height="36" width="36"></canvas>
     {[ } ]}
     <div class="chat-msg__content chat-msg__content--{{{o.sender}}} {{{o.is_me_message ? 'chat-msg__content--action' : ''}}}">
@@ -13,8 +22,10 @@
             {[ } ]}
             {[ if (o.is_encrypted) { ]}<span class="fa fa-lock"></span>{[ } ]}
         </span>
+        <!----svg class="svg-icon">
+            <circle cx="50" cy="50" r="10" fill="red" />
+        </svg-->
         <div class="chat-msg__body chat-msg__body--{{{o.type}}} {{{o.received ? 'chat-msg__body--received' : '' }}} {{{o.is_delayed ? 'chat-msg__body--delayed' : '' }}}">
-
             <div class="chat-msg__message">
                 {[ if (o.is_spoiler) { ]}
                     <div class="chat-msg__spoiler-hint">
