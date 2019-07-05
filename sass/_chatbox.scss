@@ -221,7 +221,7 @@
             progress {
                 margin: 0.5em 0;
                 width: 100%
-            }
+            } 
         }
         .chat-content-sendbutton {
             height: calc(100% - (var(--chat-textarea-height) + var(--send-button-height) + 2 * var(--send-button-margin)));
