@@ -238,6 +238,101 @@ converse.plugins.add('converse-muc', {
             return chatbox;
         }
 
+
+        /**
+         * Represents a MUC message
+         * @class
+         * @namespace _converse.ChatRoomMessage
+         * @memberOf _converse
+         */
+        _converse.ChatRoomMessage = _converse.Message.extend({
+
+            initialize () {
+                if (this.get('file')) {
+                    this.on('change:put', this.uploadFile, this);
+                }
+                if (this.isEphemeral()) {
+                    window.setTimeout(() => {
+                        try {
+                            this.destroy()
+                        } catch (e) {
+                            _converse.log(e, Strophe.LogLevel.ERROR);
+                        }
+                    }, 10000);
+                } else {
+                    this.occupantAdded = u.getResolveablePromise();
+                    this.setOccupant();
+                    this.setVCard();
+                }
+            },
+
+            setOccupant () {
+                const chatbox = _.get(this, 'collection.chatbox');
+                if (!chatbox) { return; }
+                const nick = Strophe.getResourceFromJid(this.get('from'));
+                this.occupant = chatbox.occupants.findWhere({'nick': nick});
+                this.occupantAdded.resolve();
+            },
+
+            getVCardForChatroomOccupant () {
+                const chatbox = _.get(this, 'collection.chatbox');
+                const nick = Strophe.getResourceFromJid(this.get('from'));
+
+                if (chatbox && chatbox.get('nick') === nick) {
+                    return _converse.xmppstatus.vcard;
+                } else {
+                    let vcard;
+                    if (this.get('vcard_jid')) {
+                        vcard = _converse.vcards.findWhere({'jid': this.get('vcard_jid')});
+                    }
+                    if (!vcard) {
+                        let jid;
+                        if (this.occupant && this.occupant.get('jid')) {
+                            jid = this.occupant.get('jid');
+                            this.save({'vcard_jid': jid}, {'silent': true});
+                        } else {
+                            jid = this.get('from');
+                        }
+                        if (jid) {
+                            vcard = _converse.vcards.findWhere({'jid': jid}) || _converse.vcards.create({'jid': jid});
+                        } else {
+                            _converse.log(
+                                `Could not assign VCard for message because no JID found! msgid: ${this.get('msgid')}`,
+                                Strophe.LogLevel.ERROR
+                            );
+                            return;
+                        }
+                    }
+                    return vcard;
+                }
+            },
+
+            setVCard () {
+                if (!_converse.vcards) {
+                    // VCards aren't supported
+                    return;
+                }
+                if (['error', 'info'].includes(this.get('type'))) {
+                    return;
+                } else {
+                    this.vcard = this.getVCardForChatroomOccupant();
+                }
+            },
+        });
+
+
+        /**
+         * Collection which stores MUC messages
+         * @class
+         * @namespace _converse.ChatRoomMessages
+         * @memberOf _converse
+         */
+        _converse.ChatRoomMessages = Backbone.Collection.extend({
+            model: _converse.ChatRoomMessage,
+            comparator: 'time'
+        });
+
+
         /**
          * Represents an open/ongoing groupchat conversation.
          * @class
@@ -245,6 +340,7 @@ converse.plugins.add('converse-muc', {
          * @memberOf _converse
          */
         _converse.ChatRoom = _converse.ChatBox.extend({
+            messagesCollection: _converse.ChatRoomMessages,
 
             defaults () {
                 return {
@@ -302,8 +398,9 @@ converse.plugins.add('converse-muc', {
                     // the cache (which might be stale).
                     this.removeNonMembers();
                     await this.refreshRoomFeatures();
-                    this.clearMessages(); // XXX: This should be conditional
-                    this.fetchMessages();
+                    if (_converse.clear_messages_on_reconnection) {
+                        this.clearMessages();
+                    }
                     if (!u.isPersistableModel(this)) {
                         // XXX: Happens during tests, nothing to do if this
                         // is a hanging chatbox (i.e. not in the collection anymore).
@@ -319,10 +416,15 @@ converse.plugins.add('converse-muc', {
             async onConnectionStatusChanged () {
                 if (this.get('connection_status') === converse.ROOMSTATUS.ENTERED) {
                     this.occupants.fetchMembers();
+                    // It's possible to fetch messages before entering a MUC,
+                    // but we don't support this use-case currently. By
+                    // fetching messages after members we can immediately
+                    // assign an occupant to the message before rendering it,
+                    // thereby avoiding re-renders (and therefore DOM reflows).
+                    this.fetchMessages();
 
                     if (_converse.auto_register_muc_nickname &&
                             await _converse.api.disco.supports(Strophe.NS.MUC_REGISTER, this.get('jid'))) {
-
                         this.registerNickname()
                     }
                 }
@@ -331,7 +433,7 @@ converse.plugins.add('converse-muc', {
             removeNonMembers () {
                 const non_members = this.occupants.filter(o => !o.isMember());
                 if (non_members.length) {
-                    this.occupants.remove(non_members);
+                    non_members.forEach(o => o.destroy());
                 }
             },
 
@@ -514,7 +616,7 @@ converse.plugins.add('converse-muc', {
                 if (!longest_match) {
                     return null;
                 }
-                if ((mention[longest_match.length] || '').match(/[A-Za-zäëïöüâêîôûáéíóúàèìòùÄËÏÖÜÂÊÎÔÛÁÉÍÓÚÀÈÌÒÙ]/i)) {
+                if ((mention[longest_match.length] || '').match(/[A-Za-zäëïöüâêîôûáéíóúàèìòùÄËÏÖÜÂÊÎÔÛÁÉÍÓÚÀÈÌÒÙ0-9]/i)) {
                     // avoid false positives, i.e. mentions that have
                     // further alphabetical characters than our longest
                     // match.
@@ -574,7 +676,7 @@ converse.plugins.add('converse-muc', {
                 [text, references] = this.parseTextForReferences(text);
                 const origin_id = _converse.connection.getUniqueId();
 
-                return this.addOccupantData({
+                return {
                     'id': origin_id,
                     'msgid': origin_id,
                     'origin_id': origin_id,
@@ -588,7 +690,7 @@ converse.plugins.add('converse-muc', {
                     'sender': 'me',
                     'spoiler_hint': is_spoiler ? spoiler_hint : undefined,
                     'type': 'groupchat'
-                });
+                };
             },
 
             /**
@@ -1312,7 +1414,7 @@ converse.plugins.add('converse-muc', {
                 try {
                     result = await _converse.api.sendIQ(ping);
                 } catch (e) {
-                    const sel = `error[type="cancel"] not-acceptable[xmlns="${Strophe.NS.STANZAS}"]`;
+                    const sel = `error not-acceptable[xmlns="${Strophe.NS.STANZAS}"]`;
                     if (_.isElement(e) && sizzle(sel, e).length) {
                         return false;
                     }
@@ -1359,17 +1461,6 @@ converse.plugins.add('converse-muc', {
                 }
             },
 
-            addOccupantData (attrs) {
-                if (attrs.nick) {
-                    const occupant = this.occupants.findOccupant({'nick': attrs.nick});
-                    if (occupant) {
-                        attrs['affiliation'] = occupant.get('affiliation');
-                        attrs['role'] = occupant.get('role');
-                    }
-                }
-                return attrs;
-            },
-
             /**
              * Handler for all MUC messages sent to this groupchat.
              * @private
@@ -1393,13 +1484,12 @@ converse.plugins.add('converse-muc', {
                         this.isChatMarker(stanza)) {
                     return _converse.api.trigger('message', {'stanza': original_stanza});
                 }
-                let attrs = await this.getMessageAttributesFromStanza(stanza, original_stanza);
+                const attrs = await this.getMessageAttributesFromStanza(stanza, original_stanza);
                 if (attrs.nick &&
                         !this.subjectChangeHandled(attrs) &&
                         !this.ignorableCSN(attrs) &&
                         (attrs['chat_state'] || !u.isEmptyMessage(attrs))) {
 
-                    attrs = this.addOccupantData(attrs);
                     const msg = this.correctMessage(attrs) || this.messages.create(attrs);
                     this.incrementUnreadMsgCounter(msg);
                 }
@@ -1784,6 +1874,8 @@ converse.plugins.add('converse-muc', {
                     if (occupant.get('jid') === _converse.bare_jid) { return; }
                     if (occupant.get('show') === 'offline') {
                         occupant.destroy();
+                    } else {
+                        occupant.save('affiliation', null);
                     }
                 });
                 new_members.forEach(attrs => {
@@ -1811,9 +1903,9 @@ converse.plugins.add('converse-muc', {
                  */
                 const jid = Strophe.getBareJidFromJid(data.jid);
                 if (jid !== null) {
-                    return this.where({'jid': jid}).pop();
+                    return this.findWhere({'jid': jid});
                 } else {
-                    return this.where({'nick': data.nick}).pop();
+                    return this.findWhere({'nick': data.nick});
                 }
             }
         });

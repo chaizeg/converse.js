@@ -21,9 +21,9 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
-                await test_utils.openAndEnterChatRoom(_converse, 'leisure', 'montague.lit', 'romeo');
-                await test_utils.openAndEnterChatRoom(_converse, 'news', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'leisure@montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'news@montague.lit', 'romeo');
                 expect(u.isVisible(_converse.chatboxviews.get('lounge@montague.lit').el)).toBeTruthy();
                 expect(u.isVisible(_converse.chatboxviews.get('leisure@montague.lit').el)).toBeTruthy();
                 expect(u.isVisible(_converse.chatboxviews.get('news@montague.lit').el)).toBeTruthy();
@@ -37,8 +37,8 @@
                 expect(_converse.chatboxviews.get('lounge@montague.lit')).toBeUndefined();
                 expect(_converse.chatboxviews.get('leisure@montague.lit')).toBeUndefined();
                 expect(_converse.chatboxviews.get('news@montague.lit')).toBeUndefined();
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
-                await test_utils.openAndEnterChatRoom(_converse, 'leisure', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'leisure@montague.lit', 'romeo');
                 expect(u.isVisible(_converse.chatboxviews.get('lounge@montague.lit').el)).toBeTruthy();
                 expect(u.isVisible(_converse.chatboxviews.get('leisure@montague.lit').el)).toBeTruthy();
                 _converse.api.roomviews.close();
@@ -54,7 +54,7 @@
 
                 test_utils.createContacts(_converse, 'current');
                 await test_utils.waitUntil(() => _converse.rosterview.el.querySelectorAll('.roster-group .group-toggle').length, 300);
-                await test_utils.openAndEnterChatRoom(_converse, 'chillout', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'chillout@montague.lit', 'romeo');
                 let jid = 'chillout@montague.lit';
                 let room = _converse.api.rooms.get(jid);
                 expect(room instanceof Object).toBeTruthy();
@@ -66,7 +66,7 @@
                 chatroomview.close();
 
                 // Test with mixed case
-                await test_utils.openAndEnterChatRoom(_converse, 'Leisure', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'Leisure@montague.lit', 'romeo');
                 jid = 'Leisure@montague.lit';
                 room = _converse.api.rooms.get(jid);
                 expect(room instanceof Object).toBeTruthy();
@@ -269,7 +269,7 @@
 
                 const IQ_stanzas = _converse.connection.IQ_stanzas;
                 const sendIQ = _converse.connection.sendIQ;
-                const room_jid = 'lounge@montague.lit';
+                const muc_jid = 'lounge@montague.lit';
                 let sent_IQ, IQ_id;
                 spyOn(_converse.connection, 'sendIQ').and.callFake(function (iq, callback, errback) {
                     if (iq.nodeTree.getAttribute('to') === 'lounge@montague.lit') {
@@ -283,7 +283,7 @@
                 let stanza = await test_utils.waitUntil(() => _.filter(
                     IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${room_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
                     )).pop());
                 // We pretend this is a new room, so no disco info is returned.
 
@@ -317,7 +317,7 @@
                  */
                 stanza = await test_utils.waitUntil(() => _.filter(
                         IQ_stanzas,
-                        s => sizzle(`iq[to="${room_jid}"] query[node="x-roomuser-item"]`, s).length
+                        s => sizzle(`iq[to="${muc_jid}"] query[node="x-roomuser-item"]`, s).length
                     ).pop()
                 );
                 expect(Strophe.serialize(stanza)).toBe(
@@ -400,7 +400,7 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.waitUntil(() => test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo'));
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 const message = 'Hello world',
                         nick = mock.chatroom_names[0],
@@ -428,7 +428,7 @@
                     async function (done, _converse) {
 
                 test_utils.createContacts(_converse, 'current');
-                await test_utils.waitUntil(() => test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo'));
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 if (!view.el.querySelectorAll('.chat-area').length) {
                     view.renderChatArea();
@@ -770,7 +770,7 @@
                     null, ['rosterGroupsFetched', 'chatBoxesFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'coven', 'chat.shakespeare.lit', 'romeo')
+                await test_utils.openAndEnterChatRoom(_converse, 'coven@chat.shakespeare.lit', 'romeo')
                 const view = _converse.chatboxviews.get('coven@chat.shakespeare.lit');
                 const chat_content = view.el.querySelector('.chat-content');
 
@@ -922,7 +922,7 @@
                     null, ['rosterGroupsFetched', 'chatBoxesFetched'], {'muc_show_join_leave_status': false},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, "coven", 'chat.shakespeare.lit', 'some1');
+                await test_utils.openAndEnterChatRoom(_converse, 'coven@chat.shakespeare.lit', 'some1');
                 const view = _converse.chatboxviews.get('coven@chat.shakespeare.lit');
                 const chat_content = view.el.querySelector('.chat-content');
                 expect(sizzle('div.chat-info', chat_content).pop().textContent).toBe('some1 has entered the groupchat');
@@ -999,7 +999,7 @@
 
                 // See https://github.com/conversejs/converse.js/issues/1259
 
-                await test_utils.openAndEnterChatRoom(_converse, 'conversations', 'conference.siacs.eu', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'conversations@conference.siacs.eu', 'romeo');
 
                 const presence = $pres({
                         to: 'romeo@montague.lit/orchard',
@@ -1059,7 +1059,7 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'coven', 'chat.shakespeare.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'coven@chat.shakespeare.lit', 'romeo');
                 const view = _converse.chatboxviews.get('coven@chat.shakespeare.lit');
                 const chat_content = view.el.querySelector('.chat-content');
                 let indicator = chat_content.querySelector('.date-separator');
@@ -1224,7 +1224,7 @@
                 await test_utils.waitUntilDiscoConfirmed(_converse, 'montague.lit', [], ['vcard-temp']);
                 await test_utils.waitUntil(() => _converse.xmppstatus.vcard.get('fullname'));
                 test_utils.createContacts(_converse, 'current');
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 if (!view.el.querySelectorAll('.chat-area').length) {
                     view.renderChatArea();
@@ -1443,25 +1443,25 @@
                 await test_utils.waitUntil(() => view.el.querySelectorAll('form.chatroom-form').length)
                 expect(view.el.querySelectorAll('form.chatroom-form').length).toBe(1);
                 expect(view.el.querySelectorAll('form.chatroom-form fieldset').length).toBe(2);
-                var membersonly = view.el.querySelectorAll('input[name="muc#roomconfig_membersonly"]');
+                const membersonly = view.el.querySelectorAll('input[name="muc#roomconfig_membersonly"]');
                 expect(membersonly.length).toBe(1);
                 expect(membersonly[0].getAttribute('type')).toBe('checkbox');
                 membersonly[0].checked = true;
 
-                var moderated = view.el.querySelectorAll('input[name="muc#roomconfig_moderatedroom"]');
+                const moderated = view.el.querySelectorAll('input[name="muc#roomconfig_moderatedroom"]');
                 expect(moderated.length).toBe(1);
                 expect(moderated[0].getAttribute('type')).toBe('checkbox');
                 moderated[0].checked = true;
 
-                var password = view.el.querySelectorAll('input[name="muc#roomconfig_roomsecret"]');
+                const password = view.el.querySelectorAll('input[name="muc#roomconfig_roomsecret"]');
                 expect(password.length).toBe(1);
                 expect(password[0].getAttribute('type')).toBe('password');
 
-                var allowpm = view.el.querySelectorAll('select[name="muc#roomconfig_allowpm"]');
+                const allowpm = view.el.querySelectorAll('select[name="muc#roomconfig_allowpm"]');
                 expect(allowpm.length).toBe(1);
                 allowpm[0].value = 'moderators';
 
-                var presencebroadcast = view.el.querySelectorAll('select[name="muc#roomconfig_presencebroadcast"]');
+                const presencebroadcast = view.el.querySelectorAll('select[name="muc#roomconfig_presencebroadcast"]');
                 expect(presencebroadcast.length).toBe(1);
                 presencebroadcast[0].value = ['moderator'];
 
@@ -1480,9 +1480,11 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'lounge@montague.lit'
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const muc_jid = 'lounge@montague.lit'
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo', [], ['juliet']);
+                const view = _converse.chatboxviews.get(muc_jid);
+                await test_utils.waitUntil(() => view.model.occupants.length === 2);
+
                 const occupants = view.el.querySelector('.occupant-list');
                 for (let i=0; i<mock.chatroom_names.length; i++) {
                     const name = mock.chatroom_names[i];
@@ -1501,7 +1503,8 @@
                 }
 
                 await test_utils.waitUntil(() => occupants.querySelectorAll('li').length > 2, 500);
-                expect(occupants.querySelectorAll('li').length).toBe(1+mock.chatroom_names.length);
+                expect(occupants.querySelectorAll('li').length).toBe(2+mock.chatroom_names.length);
+                expect(view.model.occupants.length).toBe(2+mock.chatroom_names.length);
 
                 mock.chatroom_names.forEach(name => {
                     const model = view.model.occupants.findWhere({'nick': name});
@@ -1526,11 +1529,8 @@
                         role: 'none'
                     }).nodeTree;
                     _converse.connection._dataRecv(test_utils.createRequest(presence));
-                    expect(occupants.querySelectorAll('li').length).toBe(7);
+                    expect(occupants.querySelectorAll('li').length).toBe(8);
                 }
-
-                // Test that members aren't removed when we reconnect
-                // See example 21 https://xmpp.org/extensions/xep-0045.html#enter-pres
                 const presence = $pres({
                         to: 'romeo@montague.lit/pda',
                         from: 'lounge@montague.lit/nonmember'
@@ -1541,16 +1541,20 @@
                     role: 'visitor'
                 });
                 _converse.connection._dataRecv(test_utils.createRequest(presence));
-                expect(occupants.querySelectorAll('li').length).toBe(7);
-                expect(view.model.occupants.length).toBe(8);
-                expect(view.model.occupants.filter(o => o.isMember()).length).toBe(7);
+                await test_utils.waitUntil(() => occupants.querySelectorAll('li').length > 8, 500);
+                expect(occupants.querySelectorAll('li').length).toBe(9);
+                expect(view.model.occupants.length).toBe(9);
+                expect(view.model.occupants.filter(o => o.isMember()).length).toBe(8);
 
+
+                // Test that members aren't removed when we reconnect
+                // See example 21 https://xmpp.org/extensions/xep-0045.html#enter-pres
                 spyOn(view.model, 'removeNonMembers').and.callThrough();
                 view.model.save('connection_status', converse.ROOMSTATUS.DISCONNECTED);
                 view.model.enterRoom();
                 expect(view.model.removeNonMembers).toHaveBeenCalled();
-                expect(view.model.occupants.length).toBe(7);
-                expect(occupants.querySelectorAll('li').length).toBe(7);
+                expect(view.model.occupants.length).toBe(8);
+                expect(occupants.querySelectorAll('li').length).toBe(8);
                 done();
             }));
 
@@ -1559,7 +1563,7 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 var name;
                 var view = _converse.chatboxviews.get('lounge@montague.lit'),
                     occupants = view.el.querySelector('.occupant-list');
@@ -1617,7 +1621,7 @@
                 mock.initConverse(null, ['rosterGroupsFetched'], {},
                 async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 /* <presence xmlns="jabber:client" to="jc@chat.example.org/converse.js-17184538"
                  *      from="oo@conference.chat.example.org/&lt;img src=&quot;x&quot; onerror=&quot;alert(123)&quot;/&gt;">
                  *   <x xmlns="http://jabber.org/protocol/muc#user">
@@ -1650,7 +1654,7 @@
                     null, ['rosterGroupsFetched'], {'view_mode': 'fullscreen'},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 let contact_jid = mock.cur_names[2].replace(/ /g,'.').toLowerCase() + '@montague.lit';
 
@@ -1749,14 +1753,14 @@
 
                 const IQ_stanzas = _converse.connection.IQ_stanzas;
                 const sendIQ = _converse.connection.sendIQ;
-                const room_jid = 'lounge@montague.lit';
+                const muc_jid = 'lounge@montague.lit';
 
                 await test_utils.openChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
 
                 let stanza = await test_utils.waitUntil(() => _.filter(
                     IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${room_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
                     )).pop()
                 );
                 // We pretend this is a new room, so no disco info is returned.
@@ -1782,7 +1786,7 @@
                  */
                 const iq = await test_utils.waitUntil(() => _.filter(
                         IQ_stanzas,
-                        s => sizzle(`iq[to="${room_jid}"] query[node="x-roomuser-item"]`, s).length
+                        s => sizzle(`iq[to="${muc_jid}"] query[node="x-roomuser-item"]`, s).length
                     ).pop()
                 );
                 expect(Strophe.serialize(iq)).toBe(
@@ -1858,7 +1862,7 @@
                     'muc_unmoderated',
                     'muc_anonymous'
                 ]
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo', features);
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo', features);
                 spyOn(_converse.api, "trigger").and.callThrough();
                 spyOn(window, 'prompt').and.callFake(() => "Please join!");
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
@@ -1909,13 +1913,13 @@
 
                 test_utils.createContacts(_converse, 'current'); // We need roster contacts, who can invite us
                 spyOn(window, 'confirm').and.callFake(() => true);
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 view.close(); // Hack, otherwise we have to mock stanzas.
 
                 const name = mock.cur_names[0];
                 const from_jid = name.replace(/ /g,'.').toLowerCase() + '@montague.lit';
-                const room_jid = 'lounge@montague.lit';
+                const muc_jid = 'lounge@montague.lit';
                 const reason = "Please join this groupchat";
 
                 expect(_converse.chatboxes.models.length).toBe(1);
@@ -1923,15 +1927,15 @@
 
                 const stanza = u.toStanza(`
                     <message xmlns="jabber:client" to="${_converse.bare_jid}" from="${from_jid}" id="9bceb415-f34b-4fa4-80d5-c0d076a24231">
-                       <x xmlns="jabber:x:conference" jid="${room_jid}" reason="${reason}"/>
+                       <x xmlns="jabber:x:conference" jid="${muc_jid}" reason="${reason}"/>
                     </message>`);
                 _converse.onDirectMUCInvitation(stanza);
                 expect(window.confirm).toHaveBeenCalledWith(
-                    name + ' has invited you to join a groupchat: '+ room_jid +
+                    name + ' has invited you to join a groupchat: '+ muc_jid +
                     ', and left the following reason: "'+reason+'"');
                 expect(_converse.chatboxes.models.length).toBe(2);
                 expect(_converse.chatboxes.models[0].id).toBe('controlbox');
-                expect(_converse.chatboxes.models[1].id).toBe(room_jid);
+                expect(_converse.chatboxes.models[1].id).toBe(muc_jid);
                 done();
             }));
 
@@ -1941,7 +1945,7 @@
                     async function (done, _converse) {
 
                 const text = 'This is a received message';
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 spyOn(_converse.api, "trigger");
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 if (!view.el.querySelectorAll('.chat-area').length) {
@@ -1973,7 +1977,7 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 spyOn(_converse.api, "trigger");
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 if (!view.el.querySelectorAll('.chat-area').length) {
@@ -2021,7 +2025,7 @@
                     async function (done, _converse) {
 
                 var message = 'This message is received while the chat area is scrolled up';
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 var view = _converse.chatboxviews.get('lounge@montague.lit');
                 spyOn(view, 'scrollDown').and.callThrough();
                 // Create enough messages so that there's a scrollbar.
@@ -2063,7 +2067,7 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'jdev', 'conference.jabber.org', 'jc');
+                await test_utils.openAndEnterChatRoom(_converse, 'jdev@conference.jabber.org', 'jc');
                 const text = 'Jabber/XMPP Development | RFCs and Extensions: https://xmpp.org/ | Protocol and XSF discussions: xsf@muc.xmpp.org';
                 let stanza = u.toStanza(`
                     <message xmlns="jabber:client" to="jc@opkode.com/_converse.js-60429116" type="groupchat" from="jdev@conference.jabber.org/ralphm">
@@ -2101,7 +2105,7 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'jdev', 'conference.jabber.org', 'jc');
+                await test_utils.openAndEnterChatRoom(_converse, 'jdev@conference.jabber.org', 'jc');
                 spyOn(window, 'alert');
                 const subject = '<img src="x" onerror="alert(\'XSS\');"/>';
                 const view = _converse.chatboxviews.get('jdev@conference.jabber.org');
@@ -2121,15 +2125,15 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'coven@chat.shakespeare.lit';
-                await test_utils.openAndEnterChatRoom(_converse, 'coven', 'chat.shakespeare.lit', 'romeo');
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const muc_jid = 'coven@chat.shakespeare.lit';
+                await test_utils.openAndEnterChatRoom(_converse, 'coven@chat.shakespeare.lit', 'romeo');
+                const view = _converse.chatboxviews.get(muc_jid);
                 expect(view.model.get('connection_status')).toBe(converse.ROOMSTATUS.ENTERED);
                 await test_utils.sendMessage(view, 'hello world');
 
                 const stanza = u.toStanza(`
                     <message xmlns='jabber:client'
-                             from='${groupchat_jid}'
+                             from='${muc_jid}'
                              type='error'
                              to='${_converse.bare_jid}'>
                         <error type='cancel'>
@@ -2146,7 +2150,7 @@
                     `</iq>`);
 
                 const result = u.toStanza(`
-                    <iq from='${groupchat_jid}'
+                    <iq from='${muc_jid}'
                         id='${iq.getAttribute('id')}'
                         to='${_converse.bare_jid}'
                         type='error'>
@@ -2175,13 +2179,13 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'coven@chat.shakespeare.lit';
-                await test_utils.openAndEnterChatRoom(_converse, 'coven', 'chat.shakespeare.lit', 'romeo');
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const muc_jid = 'coven@chat.shakespeare.lit';
+                await test_utils.openAndEnterChatRoom(_converse, 'coven@chat.shakespeare.lit', 'romeo');
+                const view = _converse.chatboxviews.get(muc_jid);
                 expect(view.model.get('connection_status')).toBe(converse.ROOMSTATUS.ENTERED);
 
                 const stanza = u.toStanza(`
-                    <message from='${groupchat_jid}'
+                    <message from='${muc_jid}'
                             id='80349046-F26A-44F3-A7A6-54825064DD9E'
                             to='${_converse.jid}'
                             type='groupchat'>
@@ -2239,7 +2243,7 @@
                  *  </presence>
                  */
                 const __ = _converse.__;
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'oldnick');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'oldnick');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 expect(view.model.get('connection_status')).toBe(converse.ROOMSTATUS.ENTERED);
                 const chat_content = view.el.querySelector('.chat-content');
@@ -2315,18 +2319,18 @@
                     async function (done, _converse) {
 
                 const IQ_stanzas = _converse.connection.IQ_stanzas;
-                const room_jid = 'coven@chat.shakespeare.lit';
+                const muc_jid = 'coven@chat.shakespeare.lit';
 
-                await _converse.api.rooms.open(room_jid, {'nick': 'some1'});
+                await _converse.api.rooms.open(muc_jid, {'nick': 'some1'});
                 const stanza = await test_utils.waitUntil(() => _.filter(
                     IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${room_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
                     )).pop());
 
                 // Check that the groupchat queried for the feautures.
                 expect(Strophe.serialize(stanza)).toBe(
-                    `<iq from="romeo@montague.lit/orchard" id="${stanza.getAttribute("id")}" to="${room_jid}" type="get" xmlns="jabber:client">`+
+                    `<iq from="romeo@montague.lit/orchard" id="${stanza.getAttribute("id")}" to="${muc_jid}" type="get" xmlns="jabber:client">`+
                         `<query xmlns="http://jabber.org/protocol/disco#info"/>`+
                     `</iq>`);
 
@@ -2350,7 +2354,7 @@
                  *  </iq>
                  */
                 const features_stanza = $iq({
-                        'from': room_jid,
+                        'from': muc_jid,
                         'id': stanza.getAttribute('id'),
                         'to': 'romeo@montague.lit/desktop',
                         'type': 'result'
@@ -2397,7 +2401,7 @@
                     'muc_unmoderated',
                     'muc_nonanonymous'
                 ];
-                await test_utils.openAndEnterChatRoom(_converse, 'room', 'conference.example.org', 'romeo', features);
+                await test_utils.openAndEnterChatRoom(_converse, 'room@conference.example.org', 'romeo', features);
                 const jid = 'room@conference.example.org';
                 const chatroomview = _converse.chatboxviews.get(jid);
                 let features_list = chatroomview.el.querySelector('.features-list');
@@ -2578,7 +2582,7 @@
                 let sent_IQ, IQ_id;
                 const sendIQ = _converse.connection.sendIQ;
 
-                await test_utils.openAndEnterChatRoom(_converse, 'coven', 'chat.shakespeare.lit', 'some1');
+                await test_utils.openAndEnterChatRoom(_converse, 'coven@chat.shakespeare.lit', 'some1');
                 spyOn(_converse.connection, 'sendIQ').and.callFake(function (iq, callback, errback) {
                     sent_IQ = iq;
                     IQ_id = sendIQ.bind(this)(iq, callback, errback);
@@ -2639,7 +2643,7 @@
                  *  </x>
                  *  </presence>
                  */
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 var presence = $pres().attrs({
                         from:'lounge@montague.lit/romeo',
                         to:'romeo@montague.lit/pda',
@@ -2765,7 +2769,7 @@
                     async function (done, _converse) {
 
                 spyOn(window, 'confirm').and.callFake(() => true);
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 const textarea = view.el.querySelector('.chat-textarea');
                 textarea.value = '/clear';
@@ -2838,7 +2842,7 @@
                     null, ['rosterGroupsFetched'], {muc_disable_slash_commands: ['mute', 'voice']},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 var textarea = view.el.querySelector('.chat-textarea');
                 const enter = { 'target': textarea, 'preventDefault': _.noop, 'keyCode': 13 };
@@ -2876,7 +2880,7 @@
                     async function (done, _converse) {
 
                 let iq_stanza;
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'muc.montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@muc.montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@muc.montague.lit');
                 /* We don't show join/leave messages for existing occupants. We
                  * know about them because we receive their presences before we
@@ -3020,7 +3024,7 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 spyOn(view, 'clearMessages');
                 let sent_stanza;
@@ -3072,7 +3076,7 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 spyOn(view, 'clearMessages');
                 const textarea = view.el.querySelector('.chat-textarea')
@@ -3098,7 +3102,7 @@
                     IQ_id = sendIQ.bind(this)(iq, callback, errback);
                 });
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 spyOn(view.model, 'setAffiliation').and.callThrough();
                 spyOn(view, 'showErrorMessage').and.callThrough();
@@ -3186,7 +3190,7 @@
                     IQ_id = sendIQ.bind(this)(iq, callback, errback);
                 });
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                await test_utils.openAndEnterChatRoom(_converse, 'lounge@montague.lit', 'romeo');
                 const view = _converse.chatboxviews.get('lounge@montague.lit');
                 spyOn(view.model, 'setAffiliation').and.callThrough();
                 spyOn(view, 'showErrorMessage').and.callThrough();
@@ -3286,8 +3290,9 @@
                     IQ_id = sendIQ.bind(this)(iq, callback, errback);
                 });
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
-                const view = _converse.chatboxviews.get('lounge@montague.lit');
+                const muc_jid = 'lounge@montague.lit';
+                await test_utils.openAndEnterChatRoom(_converse, muc_jid, 'romeo');
+                const view = _converse.api.chatviews.get(muc_jid);
                 spyOn(view.model, 'setRole').and.callThrough();
                 spyOn(view, 'showErrorMessage').and.callThrough();
                 spyOn(view, 'validateRoleOrAffiliationChangeArgs').and.callThrough();
@@ -3370,14 +3375,15 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                const muc_jid = 'lounge@montague.lit';
+                await test_utils.openAndEnterChatRoom(_converse, muc_jid, 'romeo');
+                const view = _converse.api.chatviews.get(muc_jid);
                 var sent_IQ, IQ_id;
                 var sendIQ = _converse.connection.sendIQ;
                 spyOn(_converse.connection, 'sendIQ').and.callFake(function (iq, callback, errback) {
                     sent_IQ = iq;
                     IQ_id = sendIQ.bind(this)(iq, callback, errback);
                 });
-                const view = _converse.chatboxviews.get('lounge@montague.lit');
                 spyOn(view.model, 'setRole').and.callThrough();
                 spyOn(view, 'showErrorMessage').and.callThrough();
                 spyOn(view, 'showChatEvent').and.callThrough();
@@ -3512,14 +3518,15 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                const muc_jid = 'lounge@montague.lit';
+                await test_utils.openAndEnterChatRoom(_converse, muc_jid, 'romeo');
+                const view = _converse.api.chatviews.get(muc_jid);
                 var sent_IQ, IQ_id;
                 var sendIQ = _converse.connection.sendIQ;
                 spyOn(_converse.connection, 'sendIQ').and.callFake(function (iq, callback, errback) {
                     sent_IQ = iq;
                     IQ_id = sendIQ.bind(this)(iq, callback, errback);
                 });
-                var view = _converse.chatboxviews.get('lounge@montague.lit');
                 spyOn(view.model, 'setRole').and.callThrough();
                 spyOn(view, 'showErrorMessage').and.callThrough();
                 spyOn(view, 'showChatEvent').and.callThrough();
@@ -3655,14 +3662,15 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'lounge', 'montague.lit', 'romeo');
+                const muc_jid = 'lounge@montague.lit';
+                await test_utils.openAndEnterChatRoom(_converse, muc_jid, 'romeo');
+                const view = _converse.api.chatviews.get(muc_jid);
                 let sent_IQ, IQ_id;
                 const sendIQ = _converse.connection.sendIQ;
                 spyOn(_converse.connection, 'sendIQ').and.callFake(function (iq, callback, errback) {
                     sent_IQ = iq;
                     IQ_id = sendIQ.bind(this)(iq, callback, errback);
                 });
-                const view = _converse.chatboxviews.get('lounge@montague.lit');
                 const textarea = view.el.querySelector('.chat-textarea');
                 textarea.value = '/destroy bored';
                 view.onFormSubmitted(new Event('submit'));
@@ -3717,13 +3725,13 @@
                     null, ['rosterGroupsFetched', 'chatBoxesFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'protected';
-                await test_utils.openChatRoomViaModal(_converse, groupchat_jid, 'romeo');
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const muc_jid = 'protected';
+                await test_utils.openChatRoomViaModal(_converse, muc_jid, 'romeo');
+                const view = _converse.chatboxviews.get(muc_jid);
                 spyOn(view, 'renderPasswordForm').and.callThrough();
 
                 const presence = $pres().attrs({
-                        'from': `${groupchat_jid}/romeo`,
+                        'from': `${muc_jid}/romeo`,
                         'id': u.getUniqueId(),
                         'to': 'romeo@montague.lit/pda',
                         'type': 'error'
@@ -3753,18 +3761,18 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'members-only@muc.montague.lit'
-                await test_utils.openChatRoomViaModal(_converse, groupchat_jid, 'romeo');
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const muc_jid = 'members-only@muc.montague.lit'
+                await test_utils.openChatRoomViaModal(_converse, muc_jid, 'romeo');
+                const view = _converse.chatboxviews.get(muc_jid);
                 const iq = await test_utils.waitUntil(() => _.filter(
                     _converse.connection.IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${groupchat_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
                     )).pop());
 
                 // State that the chat is members-only via the features IQ
                 const features_stanza = $iq({
-                        'from': groupchat_jid,
+                        'from': muc_jid,
                         'id': iq.getAttribute('id'),
                         'to': 'romeo@montague.lit/desktop',
                         'type': 'result'
@@ -3783,7 +3791,7 @@
                 await test_utils.waitUntil(() => view.model.get('connection_status') === converse.ROOMSTATUS.CONNECTING);
 
                 const presence = $pres().attrs({
-                        from: `${groupchat_jid}/romeo`,
+                        from: `${muc_jid}/romeo`,
                         id: u.getUniqueId(),
                         to: 'romeo@montague.lit/pda',
                         type: 'error'
@@ -3802,17 +3810,17 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'off-limits@muc.montague.lit'
-                await test_utils.openChatRoomViaModal(_converse, groupchat_jid, 'romeo');
+                const muc_jid = 'off-limits@muc.montague.lit'
+                await test_utils.openChatRoomViaModal(_converse, muc_jid, 'romeo');
 
                 const iq = await test_utils.waitUntil(() => _.filter(
                     _converse.connection.IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${groupchat_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
                     )).pop());
 
                 const features_stanza = $iq({
-                        'from': groupchat_jid,
+                        'from': muc_jid,
                         'id': iq.getAttribute('id'),
                         'to': 'romeo@montague.lit/desktop',
                         'type': 'result'
@@ -3824,11 +3832,11 @@
                         .c('feature', {'var': 'muc_temporary'}).up()
                 _converse.connection._dataRecv(test_utils.createRequest(features_stanza));
 
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const view = _converse.chatboxviews.get(muc_jid);
                 await test_utils.waitUntil(() => view.model.get('connection_status') === converse.ROOMSTATUS.CONNECTING);
 
                 const presence = $pres().attrs({
-                        from: `${groupchat_jid}/romeo`,
+                        from: `${muc_jid}/romeo`,
                         id: u.getUniqueId(),
                         to: 'romeo@montague.lit/pda',
                         type: 'error'
@@ -3848,10 +3856,10 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'conflicted@muc.montague.lit';
-                await test_utils.openChatRoomViaModal(_converse, groupchat_jid, 'romeo');
+                const muc_jid = 'conflicted@muc.montague.lit';
+                await test_utils.openChatRoomViaModal(_converse, muc_jid, 'romeo');
                 var presence = $pres().attrs({
-                        from: `${groupchat_jid}/romeo`,
+                        from: `${muc_jid}/romeo`,
                         id: u.getUniqueId(),
                         to: 'romeo@montague.lit/pda',
                         type: 'error'
@@ -3859,7 +3867,7 @@
                       .c('error').attrs({by:'lounge@montague.lit', type:'cancel'})
                           .c('conflict').attrs({xmlns:'urn:ietf:params:xml:ns:xmpp-stanzas'}).nodeTree;
 
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const view = _converse.chatboxviews.get(muc_jid);
                 spyOn(view, 'showErrorMessage').and.callThrough();
                 _converse.connection._dataRecv(test_utils.createRequest(presence));
                 expect(sizzle('.chatroom-body form.chatroom-form label:first', view.el).pop().textContent)
@@ -3877,8 +3885,8 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'conflicting@muc.montague.lit'
-                await test_utils.openChatRoomViaModal(_converse, groupchat_jid, 'romeo');
+                const muc_jid = 'conflicting@muc.montague.lit'
+                await test_utils.openChatRoomViaModal(_converse, muc_jid, 'romeo');
                 /* <presence
                  *      from='coven@chat.shakespeare.lit/thirdwitch'
                  *      id='n13mt3l'
@@ -3893,17 +3901,17 @@
                 _converse.muc_nickname_from_jid = true;
 
                 const attrs = {
-                    'from': `${groupchat_jid}/romeo`,
+                    'from': `${muc_jid}/romeo`,
                     'id': u.getUniqueId(),
                     'to': 'romeo@montague.lit/pda',
                     'type': 'error'
                 };
                 let presence = $pres().attrs(attrs)
                     .c('x').attrs({'xmlns':'http://jabber.org/protocol/muc'}).up()
-                    .c('error').attrs({'by': groupchat_jid, 'type':'cancel'})
+                    .c('error').attrs({'by': muc_jid, 'type':'cancel'})
                         .c('conflict').attrs({'xmlns':'urn:ietf:params:xml:ns:xmpp-stanzas'}).nodeTree;
 
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const view = _converse.chatboxviews.get(muc_jid);
                 spyOn(view, 'showErrorMessage').and.callThrough();
                 spyOn(view.model, 'join').and.callThrough();
 
@@ -3912,21 +3920,21 @@
                 _converse.connection._dataRecv(test_utils.createRequest(presence));
                 expect(view.model.join).toHaveBeenCalledWith('romeo-2');
 
-                attrs.from = `${groupchat_jid}/romeo-2`;
+                attrs.from = `${muc_jid}/romeo-2`;
                 attrs.id = u.getUniqueId();
                 presence = $pres().attrs(attrs)
                     .c('x').attrs({'xmlns':'http://jabber.org/protocol/muc'}).up()
-                    .c('error').attrs({'by': groupchat_jid, type:'cancel'})
+                    .c('error').attrs({'by': muc_jid, type:'cancel'})
                         .c('conflict').attrs({xmlns:'urn:ietf:params:xml:ns:xmpp-stanzas'}).nodeTree;
                 _converse.connection._dataRecv(test_utils.createRequest(presence));
 
                 expect(view.model.join).toHaveBeenCalledWith('romeo-3');
 
-                attrs.from = `${groupchat_jid}/romeo-3`;
+                attrs.from = `${muc_jid}/romeo-3`;
                 attrs.id = new Date().getTime();
                 presence = $pres().attrs(attrs)
                     .c('x').attrs({'xmlns': 'http://jabber.org/protocol/muc'}).up()
-                    .c('error').attrs({'by': groupchat_jid, 'type': 'cancel'})
+                    .c('error').attrs({'by': muc_jid, 'type': 'cancel'})
                         .c('conflict').attrs({'xmlns':'urn:ietf:params:xml:ns:xmpp-stanzas'}).nodeTree;
                 _converse.connection._dataRecv(test_utils.createRequest(presence));
                 expect(view.model.join).toHaveBeenCalledWith('romeo-4');
@@ -3938,14 +3946,14 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'impermissable@muc.montague.lit'
-                await test_utils.openChatRoomViaModal(_converse, groupchat_jid, 'romeo')
+                const muc_jid = 'impermissable@muc.montague.lit'
+                await test_utils.openChatRoomViaModal(_converse, muc_jid, 'romeo')
 
                 // We pretend this is a new room, so no disco info is returned.
                 const iq = await test_utils.waitUntil(() => _.filter(
                     _converse.connection.IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${groupchat_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
                     )).pop());
                 const features_stanza = $iq({
                         'from': 'room@conference.example.org',
@@ -3956,11 +3964,11 @@
                         .c('item-not-found', {'xmlns': "urn:ietf:params:xml:ns:xmpp-stanzas"});
                 _converse.connection._dataRecv(test_utils.createRequest(features_stanza));
 
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const view = _converse.chatboxviews.get(muc_jid);
                 await test_utils.waitUntil(() => (view.model.get('connection_status') === converse.ROOMSTATUS.CONNECTING));
 
                 const presence = $pres().attrs({
-                        from: `${groupchat_jid}/romeo`,
+                        from: `${muc_jid}/romeo`,
                         id: u.getUniqueId(),
                         to:'romeo@montague.lit/pda',
                         type:'error'
@@ -3979,16 +3987,16 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'conformist@muc.montague.lit'
-                await test_utils.openChatRoomViaModal(_converse, groupchat_jid, 'romeo');
+                const muc_jid = 'conformist@muc.montague.lit'
+                await test_utils.openChatRoomViaModal(_converse, muc_jid, 'romeo');
 
                 const iq = await test_utils.waitUntil(() => _.filter(
                     _converse.connection.IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${groupchat_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
                     )).pop());
                 const features_stanza = $iq({
-                        'from': groupchat_jid,
+                        'from': muc_jid,
                         'id': iq.getAttribute('id'),
                         'to': 'romeo@montague.lit/desktop',
                         'type': 'result'
@@ -3997,11 +4005,11 @@
                         .c('feature', {'var': 'http://jabber.org/protocol/muc'}).up()
                 _converse.connection._dataRecv(test_utils.createRequest(features_stanza));
 
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const view = _converse.chatboxviews.get(muc_jid);
                 await test_utils.waitUntil(() => (view.model.get('connection_status') === converse.ROOMSTATUS.CONNECTING));
 
                 const presence = $pres().attrs({
-                        from: `${groupchat_jid}/romeo`,
+                        from: `${muc_jid}/romeo`,
                         id: u.getUniqueId(),
                         to:'romeo@montague.lit/pda',
                         type:'error'
@@ -4021,16 +4029,16 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'nonexistent@muc.montague.lit'
-                await test_utils.openChatRoomViaModal(_converse, groupchat_jid, 'romeo');
+                const muc_jid = 'nonexistent@muc.montague.lit'
+                await test_utils.openChatRoomViaModal(_converse, muc_jid, 'romeo');
 
                 const iq = await test_utils.waitUntil(() => _.filter(
                     _converse.connection.IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${groupchat_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
                     )).pop());
                 const features_stanza = $iq({
-                        'from': groupchat_jid,
+                        'from': muc_jid,
                         'id': iq.getAttribute('id'),
                         'to': 'romeo@montague.lit/desktop',
                         'type': 'result'
@@ -4039,11 +4047,11 @@
                         .c('feature', {'var': 'http://jabber.org/protocol/muc'}).up()
                 _converse.connection._dataRecv(test_utils.createRequest(features_stanza));
 
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const view = _converse.chatboxviews.get(muc_jid);
                 await test_utils.waitUntil(() => (view.model.get('connection_status') === converse.ROOMSTATUS.CONNECTING));
 
                 const presence = $pres().attrs({
-                        from: `${groupchat_jid}/romeo`,
+                        from: `${muc_jid}/romeo`,
                         id: u.getUniqueId(),
                         to: 'romeo@montague.lit/pda',
                         type:'error'
@@ -4063,16 +4071,16 @@
                     null, ['rosterGroupsFetched'], {},
                     async function (done, _converse) {
 
-                const groupchat_jid = 'maxed-out@muc.montague.lit'
-                await test_utils.openChatRoomViaModal(_converse, groupchat_jid, 'romeo')
+                const muc_jid = 'maxed-out@muc.montague.lit'
+                await test_utils.openChatRoomViaModal(_converse, muc_jid, 'romeo')
 
                 const iq = await test_utils.waitUntil(() => _.filter(
                     _converse.connection.IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${groupchat_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
                     )).pop());
                 const features_stanza = $iq({
-                        'from': groupchat_jid,
+                        'from': muc_jid,
                         'id': iq.getAttribute('id'),
                         'to': 'romeo@montague.lit/desktop',
                         'type': 'result'
@@ -4081,11 +4089,11 @@
                         .c('feature', {'var': 'http://jabber.org/protocol/muc'}).up()
                 _converse.connection._dataRecv(test_utils.createRequest(features_stanza));
 
-                const view = _converse.chatboxviews.get(groupchat_jid);
+                const view = _converse.chatboxviews.get(muc_jid);
                 await test_utils.waitUntil(() => (view.model.get('connection_status') === converse.ROOMSTATUS.CONNECTING));
 
                 const presence = $pres().attrs({
-                        from: `${groupchat_jid}/romeo`,
+                        from: `${muc_jid}/romeo`,
                         id: u.getUniqueId(),
                         to:'romeo@montague.lit/pda',
                         type:'error'
@@ -4111,21 +4119,21 @@
                 var sent_IQs = [], IQ_ids = [];
                 const sendIQ = _converse.connection.sendIQ;
                 const IQ_stanzas = _converse.connection.IQ_stanzas;
-                const room_jid = 'coven@chat.shakespeare.lit';
+                const muc_jid = 'coven@chat.shakespeare.lit';
                 spyOn(_converse.connection, 'sendIQ').and.callFake(function (iq, callback, errback) {
                     sent_IQs.push(iq);
                     IQ_ids.push(sendIQ.bind(this)(iq, callback, errback));
                 });
 
-                await _converse.api.rooms.open(room_jid, {'nick': 'romeo'});
+                await _converse.api.rooms.open(muc_jid, {'nick': 'romeo'});
                 let stanza = await test_utils.waitUntil(() => _.filter(
                     IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${room_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/disco#info"]`
                     )).pop());
                 // Check that the groupchat queried for the feautures.
                 expect(Strophe.serialize(stanza)).toBe(
-                    `<iq from="romeo@montague.lit/orchard" id="${stanza.getAttribute("id")}" to="${room_jid}" type="get" xmlns="jabber:client">`+
+                    `<iq from="romeo@montague.lit/orchard" id="${stanza.getAttribute("id")}" to="${muc_jid}" type="get" xmlns="jabber:client">`+
                         `<query xmlns="http://jabber.org/protocol/disco#info"/>`+
                     `</iq>`);
 
@@ -4167,9 +4175,9 @@
 
                 // Check in reverse order that we requested all three lists
                 // (member, owner and admin).
-                var admin_iq_id = IQ_ids.pop();
-                var owner_iq_id = IQ_ids.pop();
-                var member_iq_id = IQ_ids.pop();
+                const admin_iq_id = IQ_ids.pop();
+                const owner_iq_id = IQ_ids.pop();
+                const member_iq_id = IQ_ids.pop();
 
                 expect(sent_IQs.pop().toLocaleString()).toBe(
                     `<iq id="${admin_iq_id}" to="coven@chat.shakespeare.lit" type="get" xmlns="jabber:client">`+
@@ -4246,7 +4254,7 @@
                 stanza = await test_utils.waitUntil(() => _.filter(
                     IQ_stanzas,
                     iq => iq.querySelector(
-                        `iq[to="${room_jid}"] query[xmlns="http://jabber.org/protocol/muc#admin"]`
+                        `iq[to="${muc_jid}"] query[xmlns="http://jabber.org/protocol/muc#admin"]`
                     )).pop());
                 expect(stanza.outerHTML,
                     `<iq id="${IQ_ids.pop()}" to="coven@chat.shakespeare.lit" type="set" xmlns="jabber:client">`+
@@ -4671,20 +4679,20 @@
                 const roomspanel = _converse.chatboxviews.get('controlbox').roomspanel;
                 expect(roomspanel.el.querySelectorAll('.available-room').length).toBe(0);
 
-                const room_jid = 'kitchen@conference.shakespeare.lit';
+                const muc_jid = 'kitchen@conference.shakespeare.lit';
                 const message = 'fires: Your attention is required';
-                await test_utils.openAndEnterChatRoom(_converse, 'kitchen', 'conference.shakespeare.lit', 'fires');
+                await test_utils.openAndEnterChatRoom(_converse, muc_jid, 'fires');
+                const view = _converse.api.chatviews.get(muc_jid);
                 expect(roomspanel.el.querySelectorAll('.available-room').length).toBe(1);
                 expect(roomspanel.el.querySelectorAll('.msgs-indicator').length).toBe(0);
 
-                const view = _converse.chatboxviews.get(room_jid);
                 view.model.set({'minimized': true});
 
                 const contact_jid = mock.cur_names[5].replace(/ /g,'.').toLowerCase() + '@montague.lit';
                 const nick = mock.chatroom_names[0];
 
                 await view.model.onMessage($msg({
-                        from: room_jid+'/'+nick,
+                        from: muc_jid+'/'+nick,
                         id: (new Date()).getTime(),
                         to: 'romeo@montague.lit',
                         type: 'groupchat'
@@ -4695,7 +4703,7 @@
                 expect(roomspanel.el.querySelector('.msgs-indicator').textContent).toBe('1');
 
                 await view.model.onMessage($msg({
-                    'from': room_jid+'/'+nick,
+                    'from': muc_jid+'/'+nick,
                     'id': (new Date()).getTime(),
                     'to': 'romeo@montague.lit',
                     'type': 'groupchat'
@@ -4720,9 +4728,9 @@
                         null, ['rosterGroupsFetched'], {},
                         async function (done, _converse) {
 
-                    const room_jid = 'coven@chat.shakespeare.lit';
-                    await test_utils.openAndEnterChatRoom(_converse, 'coven', 'chat.shakespeare.lit', 'some1');
-                    const view = _converse.chatboxviews.get('coven@chat.shakespeare.lit');
+                    const muc_jid = 'coven@chat.shakespeare.lit';
+                    await test_utils.openAndEnterChatRoom(_converse, muc_jid, 'some1');
+                    const view = _converse.api.chatviews.get(muc_jid);
                     const chat_content = view.el.querySelector('.chat-content');
 
                     expect(sizzle('div.chat-info:first', chat_content).pop().textContent)
@@ -4762,7 +4770,7 @@
 
                     // <composing> state
                     let msg = $msg({
-                            from: room_jid+'/newguy',
+                            from: muc_jid+'/newguy',
                             id: (new Date()).getTime(),
                             to: 'romeo@montague.lit',
                             type: 'groupchat'
@@ -4787,7 +4795,7 @@
 
                     // Check that it doesn't appear twice
                     msg = $msg({
-                            from: room_jid+'/newguy',
+                            from: muc_jid+'/newguy',
                             id: (new Date()).getTime(),
                             to: 'romeo@montague.lit',
                             type: 'groupchat'
@@ -4807,7 +4815,7 @@
 
                     // <composing> state for a different occupant
                     msg = $msg({
-                            from: room_jid+'/nomorenicks',
+                            from: muc_jid+'/nomorenicks',
                             id: (new Date()).getTime(),
                             to: 'romeo@montague.lit',
                             type: 'groupchat'
@@ -4827,7 +4835,7 @@
 
                     // Check that new messages appear under the chat state notifications
                     msg = $msg({
-                        from: `${room_jid}/some1`,
+                        from: `${muc_jid}/some1`,
                         id: (new Date()).getTime(),
                         to: 'romeo@montague.lit',
                         type: 'groupchat'
@@ -4872,7 +4880,7 @@
                         async function (done, _converse) {
 
                     await test_utils.openChatRoom(_converse, "coven", 'chat.shakespeare.lit', 'some1');
-                    const room_jid = 'coven@chat.shakespeare.lit';
+                    const muc_jid = 'coven@chat.shakespeare.lit';
                     const view = _converse.chatboxviews.get('coven@chat.shakespeare.lit');
                     const chat_content = view.el.querySelector('.chat-content');
 
@@ -4932,7 +4940,7 @@
 
                     // <composing> state
                     var msg = $msg({
-                            from: room_jid+'/newguy',
+                            from: muc_jid+'/newguy',
                             id: (new Date()).getTime(),
                             to: 'romeo@montague.lit',
                             type: 'groupchat'
@@ -4953,7 +4961,7 @@
 
                     // Check that it doesn't appear twice
                     msg = $msg({
-                            from: room_jid+'/newguy',
+                            from: muc_jid+'/newguy',
                             id: (new Date()).getTime(),
                             to: 'romeo@montague.lit',
                             type: 'groupchat'
@@ -4972,7 +4980,7 @@
 
                     // <composing> state for a different occupant
                     msg = $msg({
-                            from: room_jid+'/nomorenicks',
+                            from: muc_jid+'/nomorenicks',
                             id: (new Date()).getTime(),
                             to: 'romeo@montague.lit',
                             type: 'groupchat'
@@ -4995,7 +5003,7 @@
 
                     // <paused> state from occupant who typed first
                     msg = $msg({
-                            from: room_jid+'/newguy',
+                            from: muc_jid+'/newguy',
                             id: (new Date()).getTime(),
                             to: 'romeo@montague.lit',
                             type: 'groupchat'
@@ -5029,8 +5037,9 @@
                     null, ['rosterGroupsFetched', 'chatBoxesFetched'], {},
                     async function (done, _converse) {
 
-                await test_utils.openAndEnterChatRoom(_converse, 'trollbox', 'montague.lit', 'troll');
-                const view = _converse.chatboxviews.get('trollbox@montague.lit');
+                const muc_jid = 'trollbox@montague.lit';
+                await test_utils.openAndEnterChatRoom(_converse, muc_jid, 'troll');
+                const view = _converse.api.chatviews.get(muc_jid);
                 const textarea = view.el.querySelector('.chat-textarea');
                 textarea.value = 'Hello world';
                 view.onFormSubmitted(new Event('submit'));
@@ -5058,8 +5067,9 @@
                     Strophe.NS.SID,
                     'muc_moderated',
                 ]
-                await test_utils.openAndEnterChatRoom(_converse, 'trollbox', 'montague.lit', 'troll', features);
-                const view = _converse.chatboxviews.get('trollbox@montague.lit');
+                const muc_jid = 'trollbox@montague.lit';
+                await test_utils.openAndEnterChatRoom(_converse, muc_jid, 'troll', features);
+                const view = _converse.api.chatviews.get(muc_jid);
                 expect(_.isNull(view.el.querySelector('.chat-textarea'))).toBe(false);
 
                 let stanza = u.toStanza(`

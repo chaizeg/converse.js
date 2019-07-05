@@ -171,10 +171,12 @@ converse.plugins.add('converse-chatview', {
                 if (this.model.vcard) {
                     this.model.vcard.on('change', this.debouncedRender, this);
                 }
-                this.model.on('rosterContactAdded', () => {
-                    this.model.contact.on('change:nickname', this.debouncedRender, this);
-                    this.debouncedRender();
-                });
+                if (this.model.rosterContactAdded) {
+                    this.model.rosterContactAdded.then(() => {
+                        this.model.contact.on('change:nickname', this.debouncedRender, this);
+                        this.debouncedRender();
+                    });
+                }
             },
 
             render () {
@@ -222,7 +224,7 @@ converse.plugins.add('converse-chatview', {
 
             initialize () {
                 _converse.BootstrapModal.prototype.initialize.apply(this, arguments);
-                this.model.on('rosterContactAdded', this.registerContactEventHandlers, this);
+                this.model.rosterContactAdded.then(() => this.registerContactEventHandlers());
                 this.model.on('change', this.render, this);
                 this.registerContactEventHandlers();
                 /**
@@ -801,10 +803,8 @@ converse.plugins.add('converse-chatview', {
             async showMessage (message) {
                 const view = this.add(message.get('id'), new _converse.MessageView({'model': message}));
                 await view.render();
-
                 // Clear chat state notifications
                 sizzle(`.chat-state-notification[data-csn="${message.get('from')}"]`, this.content).forEach(u.removeElement);
-
                 this.insertMessage(view);
                 this.insertDayIndicator(view.el);
                 this.setScrollPosition(view.el);
@@ -983,6 +983,15 @@ converse.plugins.add('converse-chatview', {
             },
 
             onPaste (ev) {
+                if (ev.clipboardData.files.length !== 0) {
+                    ev.preventDefault();
+                    // Workaround for quirk in at least Firefox 60.7 ESR:
+                    // It seems that pasted files disappear from the event payload after
+                    // the event has finished, which apparently happens during async
+                    // processing in sendFiles(). So we copy the array here.
+                    this.model.sendFiles(Array.from(ev.clipboardData.files));
+                    return;
+                }
                 this.updateCharCounter(ev.clipboardData.getData('text/plain'));
             },
 

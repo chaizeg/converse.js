@@ -36,6 +36,7 @@ converse.plugins.add('converse-chatboxes', {
         // configuration settings.
         _converse.api.settings.update({
             'auto_join_private_chats': [],
+            'clear_messages_on_reconnection': false,
             'filter_by_resource': false,
             'send_chat_state_notifications': true
         });
@@ -59,19 +60,24 @@ converse.plugins.add('converse-chatboxes', {
 
         const ModelWithContact = Backbone.Model.extend({
 
+            initialize () {
+                this.rosterContactAdded = u.getResolveablePromise();
+            },
+
             async setRosterContact (jid) {
                 const contact = await _converse.api.contacts.get(jid);
                 if (contact) {
                     this.contact = contact;
                     this.set('nickname', contact.get('nickname'));
-                    this.trigger('rosterContactAdded');
+                    this.rosterContactAdded.resolve();
                 }
             }
         });
 
 
         /**
-         * Represents a chat message
+         * Represents a non-MUC message. These can be either `chat` messages or
+         * `headline` messages.
          * @class
          * @namespace _converse.Message
          * @memberOf _converse
@@ -87,12 +93,13 @@ converse.plugins.add('converse-chatboxes', {
             },
 
             initialize () {
-                if (['chat', 'groupchat'].includes(this.get('type'))) {
-                    this.setVCard();
-                }
+                ModelWithContact.prototype.initialize.apply(this, arguments);
+
                 if (this.get('type') === 'chat') {
+                    this.setVCard();
                     this.setRosterContact(Strophe.getBareJidFromJid(this.get('from')));
                 }
+
                 if (this.get('file')) {
                     this.on('change:put', this.uploadFile, this);
                 }
@@ -107,32 +114,6 @@ converse.plugins.add('converse-chatboxes', {
                 }
             },
 
-            getVCardForChatroomOccupant () {
-                const chatbox = this.collection.chatbox,
-                      nick = Strophe.getResourceFromJid(this.get('from'));
-
-                if (chatbox.get('nick') === nick) {
-                    return _converse.xmppstatus.vcard;
-                } else {
-                    let vcard;
-                    if (this.get('vcard_jid')) {
-                        vcard = _converse.vcards.findWhere({'jid': this.get('vcard_jid')});
-                    }
-                    if (!vcard) {
-                        let jid;
-                        const occupant = chatbox.occupants.findWhere({'nick': nick});
-                        if (occupant && occupant.get('jid')) {
-                            jid = occupant.get('jid');
-                            this.save({'vcard_jid': jid}, {'silent': true});
-                        } else {
-                            jid = this.get('from');
-                        }
-                        vcard = _converse.vcards.findWhere({'jid': jid}) || _converse.vcards.create({'jid': jid});
-                    }
-                    return vcard;
-                }
-            },
-
             setVCard () {
                 if (!_converse.vcards) {
                     // VCards aren't supported
@@ -140,8 +121,6 @@ converse.plugins.add('converse-chatboxes', {
                 }
                 if (this.get('type') === 'error') {
                     return;
-                } else if (this.get('type') === 'groupchat') {
-                    this.vcard = this.getVCardForChatroomOccupant();
                 } else {
                     const jid = Strophe.getBareJidFromJid(this.get('from'));
                     this.vcard = _converse.vcards.findWhere({'jid': jid}) || _converse.vcards.create({'jid': jid});
@@ -271,6 +250,8 @@ converse.plugins.add('converse-chatboxes', {
          * @memberOf _converse
          */
         _converse.ChatBox = ModelWithContact.extend({
+            messagesCollection: _converse.Messages,
+
             defaults () {
                 return {
                     'bookmarked': false,
@@ -286,6 +267,8 @@ converse.plugins.add('converse-chatboxes', {
             },
 
             initialize () {
+                ModelWithContact.prototype.initialize.apply(this, arguments);
+
                 const jid = this.get('jid');
                 if (!jid) {
                     // XXX: The `validate` method will prevent this model
@@ -311,7 +294,7 @@ converse.plugins.add('converse-chatboxes', {
             },
 
             initMessages () {
-                this.messages = new _converse.Messages();
+                this.messages = new this.messagesCollection();
                 this.messages.browserStorage = new BrowserStorage.session(
                     `converse.messages-${this.get('jid')}-${_converse.bare_jid}`);
                 this.messages.chatbox = this;
@@ -376,7 +359,9 @@ converse.plugins.add('converse-chatboxes', {
             },
 
             onReconnection () {
-                this.clearMessages();
+                if (_converse.clear_messages_on_reconnection) {
+                    this.clearMessages();
+                }
                 this.announceReconnection();
             },
 
