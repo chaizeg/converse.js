@@ -1229,13 +1229,14 @@ converse.plugins.add('converse-chatview', {
         
         
                 var line = $('#lineParent');
-                var div1 = parentSpace;
+                // var div1 = parentSpace.getElementsByTagName("i");
+                var div1 = $('[data-id="'+idParent+'"] > .fa-circle');
                 console.log('parent yall');
                 console.log(div1);
-                var div2 = currentSpace;
+                var div2 =  $('[data-id="'+currentId+'"] > .fa-caret-right');
                 console.log('current yall');
                 console.log(div2);
-                console.log(line);
+                console.log(div1.position());
                 if(div1 && div2){
                     // var x1 = (this.getOffset(div1).left+window.pageXOffset)/2;
                     // var y1 = (this.getOffset(div1).top +window.pageYOffset)/2;
@@ -1248,27 +1249,55 @@ converse.plugins.add('converse-chatview', {
                     // console.log(x2);
                     // console.log(y1);
                     // console.log(y2); // line.attr('x1', 10).attr('y1', 10).attr('x2', 40).attr('y2', 40);
-                    var x1 = div1.offsetLeft+ document.body.scrollLeft;
-                    var x2 = div2.offsetLeft+ document.body.scrollLeft;
-                    var y1 =div1.offsetTop+ document.body.scrollTop;
-                    var y2= div2.offsetTop+ document.body.scrollTop;
-                    console.log(div1.offsetLeft+ document.body.scrollLeft);
-                    console.log(div1.offsetTop+ document.body.scrollTop);
-                    console.log(div2.offsetLeft+ document.body.scrollLeft);
-                    console.log(div2.offsetTop+ document.body.scrollTop);
-                    var lineParent = document.getElementById("svgParent");
+                    var x1 = div1.position().left;
+                    var x2 = div2.position().left;
+                    var y1 = div1.position().top;
+                    var y2 = div2.position().top;
+                    console.log(x1);
+                    console.log(y1);
+                    console.log(x2);
+                    console.log(y2);
+                    // console.log(window.scrollX);
+                    // console.log(window.scrollY);
+                    // var lineParent = document.getElementById("svgParent");
                     // lineParent.innerHTML ='<path d="M 80,80 v-100 fill="yellow" stroke="blue" stroke-width="3" />';
-                    lineParent.innerHTML = '<path d="M' + x1 + ',' + y1 + ' v-' + y2 + '" fill="yellow" stroke="blue" stroke-width="3" />';
+                    // lineParent.innerHTML = '<path d="M' + x1 + ',' + y1 + ' v-' + y2 + '" fill="yellow" stroke="blue" stroke-width="3" />';
                 }
               },
 
-            getOffset(el) {
-                const rect = el.getBoundingClientRect();
+            // getOffset(el) {
+            //     const rect = el.getBoundingClientRect();
+            //     return {
+            //     left: rect.left + window.scrollX,
+            //     top: rect.top + window.scrollY
+            //     };
+            // },
+
+            getPosition(el) {
+                var xPos = 0;
+                var yPos = 0;
+               
+                while (el) {
+                  if (el.tagName == "BODY") {
+                    // deal with browser quirks with body/window/document and page scroll
+                    var xScroll = el.scrollLeft || document.documentElement.scrollLeft;
+                    var yScroll = el.scrollTop || document.documentElement.scrollTop;
+               
+                    xPos += (el.offsetLeft - xScroll + el.clientLeft);
+                    yPos += (el.offsetTop - yScroll + el.clientTop);
+                  } else {
+                    // for all other non-BODY elements
+                    xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+                    yPos += (el.offsetTop - el.scrollTop + el.clientTop);
+                  }
+               
+                  el = el.offsetParent;
+                }
                 return {
-                left: rect.left + window.scrollX,
-                top: rect.top + window.scrollY
+                  x: xPos,
+                  y: yPos
                 };
-            },
+              },
 
             dehighlightParents(ev) {
                 ev.preventDefault();
