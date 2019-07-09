@@ -6,6 +6,7 @@
 
 import "backbone.nativeview";
 import "converse-chatboxviews";
+import "converse-chatview";
 import "converse-message-view";
 import "converse-modal";
 import * as twemoji from "twemoji";
@@ -92,7 +93,7 @@ converse.plugins.add('converse-discussionTrees', {
          * @namespace _converse.ChatBoxView
          * @memberOf _converse
          */
-        _converse.ChatBoxView = Overview.extend({
+        _converse.DicussionTreeView = Overview.extend({
             length: 200,
             className: 'chatbox hidden',
             is_chatroom: false,  // Leaky abstraction from MUC
@@ -102,20 +103,6 @@ converse.plugins.add('converse-discussionTrees', {
             },
 
             initialize () {
-                this.initDebounced();
-                this.model.messages.on('add', this.onMessageAdded, this);
-                this.model.messages.on('rendered', this.scrollDown, this);
-                this.model.messages.on('reset', () => {
-                    this.content.innerHTML = '';
-                    this.removeAll();
-                });
-
-                this.model.on('show', this.show, this);
-                this.model.on('destroy', this.remove, this);
-
-                this.model.presence.on('change:show', this.onPresenceChanged, this);
-                this.render();
-                this.updateAfterMessagesFetched();
                 /**
                  * Triggered once the _converse.ChatBoxView has been initialized
                  * @event _converse#chatBoxInitialized
@@ -135,8 +122,10 @@ converse.plugins.add('converse-discussionTrees', {
                 );
                 this.content = this.el.querySelector('.chat-content');
                 var msgs = this.el.querySelectorAll('.chat-msg__body');
+                console.log('messages ok');
+                console.log(msgs);
                 for(var i=0; i < msgs.length; i++){
-                    msgs.innerHTML += '<div class="chat-msg__actions"> <button class="chat-msg__action chat-msg__action-reply fa fa-pencil-alt" title="{{{o.__(\'Edit this message\')}}}"></button>  </div>';
+                    msgs.innerHTML += '<div class="chat-msg__actions"> <button class="chat-msg__action chat-msg__actionreply fas fa-reply" title="{{{o.__(\'Reply this message\')}}}"></button> </div>';
                 }
                 this.renderMessageForm();
                 this.insertHeading();
@@ -173,18 +162,6 @@ converse.plugins.add('converse-discussionTrees', {
             'discussionTrees': {
                  /**
                   * Get the view of an already open chat.
-                  *
-                  * @method _converse.api.chatviews.get
-                  * @returns {ChatBoxView} A [Backbone.View](http://backbonejs.org/#View) instance.
-                  *     The chat should already be open, otherwise `undefined` will be returned.
-                  *
-                  * @example
-                  * // To return a single view, provide the JID of the contact:
-                  * _converse.api.chatviews.get('buddy@example.com')
-                  *
-                  * @example
-                  * // To return an array of views, provide an array of JIDs:
-                  * _converse.api.chatviews.get(['buddy1@example.com', 'buddy2@example.com'])
                   */
                 'get' (jids) {
                     if (_.isUndefined(jids)) {
