@@ -1,13 +1,13 @@
 <div class="message chat-msg {{{o.type}}} {[ if (o.is_me_message) { ]} chat-msg--action {[ } ]} {{{o.extra_classes}}}"
         data-isodate="{{{o.time}}}" data-msgid="{{{o.msgid}}}" data-from="{{{o.from}}}" data-encrypted="{{{o.is_encrypted}}}" data-parent="{{{o.repliesTo}}}">
         <div class="parentSpace" data-id="{{{o.msgid}}}">
-             <i class="fas fa-circle" style="opacity: 0;"></i>
+             <i class="fas fa-caret-down" style="font-size: 30px; opacity: 0;"></i>
             </div>
             <div class="currentSpace" data-id="{{{o.msgid}}}">
-                <i class="fas fa-caret-right" style="font-size: 30px; opacity: 0;"></i>
+                <i class="fas fa-caret-down" style="font-size: 30px; opacity: 0;"></i>
             </div>
             <div class="childSpace" data-id="{{{o.msgid}}}">
-                <i class="fas fa-caret-right" style="font-size: 30px; opacity: 0;"></i>
+                <i class="fas fa-caret-right" style="font-size: 30px; opacity: 0; padding-right: 2px;"></i>
             </div>
         {[ if (o.type !== 'headline' && !o.is_me_message) { ]}
     <canvas class="avatar chat-msg__avatar" height="36" width="36"></canvas>
@@ -22,9 +22,6 @@
             {[ } ]}
             {[ if (o.is_encrypted) { ]}<span class="fa fa-lock"></span>{[ } ]}
         </span>
-        <!----svg class="svg-icon">
-            <circle cx="50" cy="50" r="10" fill="red" />
-        </svg-->
         <div class="chat-msg__body chat-msg__body--{{{o.type}}} {{{o.received ? 'chat-msg__body--received' : '' }}} {{{o.is_delayed ? 'chat-msg__body--delayed' : '' }}}">
             <div class="chat-msg__message">
                 {[ if (o.is_spoiler) { ]}
@@ -42,15 +39,25 @@
                 <div class="chat-msg__media"></div>
             </div>
             {[ if (o.received && !o.is_me_message && !o.is_groupchat_message) { ]} <span class="fa fa-check chat-msg__receipt"></span> {[ } ]}
+            <div class="chat-msg__reactions">
+                <span class="chat-msg__reaction" id="like">&#128077;</span>
+                <span class="chat-msg__reaction" id="clap">&#128079;</span>
+                <span class="chat-msg__reaction" id="heart">&#10084;</span>
+                <span class="chat-msg__reaction" id="light-bulb">&#128161;</span>
+                <span class="chat-msg__reaction" id="thinking-face">&#129300;</span>
+            </div>
             {[ if (o.edited) { ]} <i title="{{{o.__('This message has been edited')}}}" class="fa fa-edit chat-msg__edit-modal"></i> {[ } ]}
             {[ if (o.type !== 'headline' && o.sender === 'me') { ]}
                 <div class="chat-msg__actions">
                     <button class="chat-msg__action chat-msg__action-edit fa fa-pencil-alt" title="{{{o.__('Edit this message')}}}"></button>
                 </div>
             {[ } ]}
-            <div class="chat-msg__actions">
-                <button class="chat-msg__action chat-msg__action-reply fas fa-reply" title="{{{o.__('Reply this message')}}}"></button>
-            </div>
+                <div class="chat-msg__actions">
+                    <button class="chat-msg__action chat-msg__action-reply fas fa-reply" title="{{{o.__('Reply this message')}}}"></button>
+                </div>
+                <div class="chat-msg__actions">
+                    <button class="chat-msg__action chat-msg__action-react far fa-smile" title="{{{o.__('React to this message')}}}"></button>
+                </div>
         </div>
     </div>
 </div>

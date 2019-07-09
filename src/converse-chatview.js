@@ -325,6 +325,8 @@ converse.plugins.add('converse-chatview', {
                 'change input.fileupload': 'onFileSelection',
                 'click .chat-msg__action-edit': 'onMessageEditButtonClicked',
                 'click .chat-msg__action-reply': 'onMessageReplyButtonClicked',
+                'click .chat-msg__action-react': 'onMessageReactButtonClicked',
+                'click .chat-msg__reaction': 'onReactionClicked',
                 'click .chatbox-navback': 'showControlBox',
                 'click .close-chatbox-button': 'close',
                 'click .new-msgs-indicator': 'viewUnreadMessages',
@@ -1124,6 +1126,36 @@ converse.plugins.add('converse-chatview', {
                 }
 
             },  
+            onMessageReactButtonClicked (ev) {
+                ev.preventDefault();
+                const parentNode = u.ancestor(ev.target, '.chat-msg__body');
+                if(!this.model.reactionInProgress){
+                    this.model.reactionInProgress = true;
+                    console.log(parentNode.getElementsByClassName("chat-msg__reactions"));
+                    parentNode.getElementsByClassName("chat-msg__reactions")[0].style.opacity = 1;          
+                }
+                else{
+                    this.model.reactionInProgress = false;
+                    parentNode.getElementsByClassName("chat-msg__reactions")[0].style.opacity = 0;          
+                }
+            },  
+            onReactionClicked(ev){
+                ev.preventDefault();
+                var reaction = u.ancestor(ev.target, '.chat-msg__reaction');
+                console.log('the reaction is :');
+                console.log(reaction.innerHTML);
+                //TODO: processing data 
+                //send stanza using message attaching
+                var extraAttrs = {};
+                var message = u.ancestor(ev.target, '.chat-msg');
+                extraAttrs.reaction = reaction.innerHTML;
+                extraAttrs.repliesTo = message.getAttribute('data-msgid');
+                this.model.sendMessage(reaction.innerHTML, null, extraAttrs);
+                this.model.reactionInProgress = false;
+                const parentNode = u.ancestor(ev.target, '.chat-msg__body');
+                parentNode.getElementsByClassName("chat-msg__reactions")[0].style.opacity = 0;     
+
+            },
             // dw_getScrollOffsets() {
             //     var doc = document, w = window;
             //     var x, y, docEl;
@@ -1237,7 +1269,7 @@ converse.plugins.add('converse-chatview', {
                 console.log('current yall');
                 console.log(div2);
                 console.log(div1.position());
-                if(div1 && div2){
+                if(div1 && div1.position() && div2 && div2.position()){
                     // var x1 = (this.getOffset(div1).left+window.pageXOffset)/2;
                     // var y1 = (this.getOffset(div1).top +window.pageYOffset)/2;
                     // var x2 = (this.getOffset(div2).left+window.pageXOffset)/2;
@@ -1253,25 +1285,20 @@ converse.plugins.add('converse-chatview', {
                     var x2 = div2.position().left;
                     var y1 = div1.position().top;
                     var y2 = div2.position().top;
+                    var el = div1;
                     console.log(x1);
                     console.log(y1);
                     console.log(x2);
                     console.log(y2);
-                    // console.log(window.scrollX);
-                    // console.log(window.scrollY);
+                    console.log(- div1.scrollLeft+el.offsetLeft  + el.clientLeft);
+                    el = div2;
+                    console.log(-div2.scrollTop+el.offsetLeft  + el.clientLeft);
                     // var lineParent = document.getElementById("svgParent");
                     // lineParent.innerHTML ='<path d="M 80,80 v-100 fill="yellow" stroke="blue" stroke-width="3" />';
                     // lineParent.innerHTML = '<path d="M' + x1 + ',' + y1 + ' v-' + y2 + '" fill="yellow" stroke="blue" stroke-width="3" />';
                 }
               },
 
-            // getOffset(el) {
-            //     const rect = el.getBoundingClientRect();
-            //     return {
-            //     left: rect.left + window.scrollX,
-            //     top: rect.top + window.scrollY
-            //     };
-            // },
 
             getPosition(el) {
                 var xPos = 0;

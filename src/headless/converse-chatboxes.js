@@ -647,11 +647,10 @@ converse.plugins.add('converse-chatboxes', {
                     stanza.c('origin-id', {'xmlns': Strophe.NS.SID, 'id': message.get('origin_id')}).root();
                 }
                 //XEP-0367 : Message attaching 
-                if(message.get('repliesTo')){
+                if(message.get('reaction' ||message.get('repliesTo'))){
                     stanza.c('attach-to', {'id': message.get('repliesTo'), 'xmlns': 'urn:xmpp:message-attaching:1'}).root();
+                    console.log(stanza);
                 }
-                // console.log('the stanza ');
-                // console.log(stanza);
                 return stanza;
             },
 
@@ -715,14 +714,17 @@ converse.plugins.add('converse-chatboxes', {
                     message = this.messages.create(attrs);
                 }
 
-                if(extraAttrs){
+                if(extraAttrs.reaction){
+                    message.save('message', extraAttrs.reaction);
+                    message.save('reaction', extraAttrs.reaction);
+                    message.save('repliesTo', extraAttrs.repliesTo);
+                }
+                if(extraAttrs.repliesTo){
                     message.save({
                         repliesTo: extraAttrs.repliesTo
                     });
                     u.removeClass('replying', extraAttrs.parentNodeRef);
                 }
-                // console.log('rechecking..');
-                // console.log(message);
                 _converse.api.send(this.createMessageStanza(message));
                 return true;
             },
@@ -876,8 +878,6 @@ converse.plugins.add('converse-chatboxes', {
                             stanza.getElementsByTagName(_converse.ACTIVE).length && _converse.ACTIVE ||
                             stanza.getElementsByTagName(_converse.GONE).length && _converse.GONE;
                 const attach_to = sizzle(`attach-to[xmlns='urn:xmpp:message-attaching:1']`, stanza).pop();
-                // console.log('got it');
-                // console.log(attach_to);
                 const replaced_id = this.getReplaceId(stanza)
                 const msgid = replaced_id || stanza.getAttribute('id') || original_stanza.getAttribute('id');
                 const attrs = Object.assign({

@@ -102,7 +102,8 @@ converse.plugins.add('converse-modal', {
                             'title': title,
                             'messages': messages,
                             'type': type,
-                            'replyInProgress': replyInProgress
+                            'replyInProgress': replyInProgress,
+                            'reactionInProgress': reactionInProgress
                         });
                     }
                     alert.show();

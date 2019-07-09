@@ -349,6 +349,24 @@
                 }
             }
 
+            .chat-msg__reactions{
+                display: flex;
+                background: white;
+                flex-direction: row-reverse;
+                height: 25px;
+                opacity: 0;
+                .chat-msg__reaction {
+                    height: var(--message-font-size);
+                    font-size: var(--message-font-size);
+                    padding: 3px;
+                    border: none;
+                    cursor: pointer;
+                    &:focus {
+                        display: block;
+                    }
+                }
+            }
+
             .chat-msg__avatar {
                 margin-top: 0.5em;
                 vertical-align: middle;
