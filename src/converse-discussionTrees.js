@@ -120,19 +120,14 @@ converse.plugins.add('converse-discussionTrees', {
             }
         });
 
-        _converse.api.listen.on('chatBoxViewsInitialized', () => {
+        /*_converse.api.listen.on('chatBoxViewsInitialized', () => {
             const views = _converse.chatboxviews;
             _converse.chatboxes.on('add', item => {
                 // if (!views.get(item.get('id')) && item.get('type') === _converse.PRIVATE_CHAT_TYPE) {
                     views.add(item.get('id'), new _converse.DiscussionTreeView({model: item}));
                 // }
             });
-        });
-
-        _converse.api.listen.on('connected', () => {
-            // Advertise that we support XEP-0382 Message Spoilers
-            _converse.api.disco.own.features.add(Strophe.NS.SPOILER);
-        });
+        });*/
 
         /************************ BEGIN API ************************/
         Object.assign(_converse.api, {
@@ -162,6 +157,25 @@ converse.plugins.add('converse-discussionTrees', {
                 }
             }
         });
+        
         /************************ END API ************************/
+        /************************ BEGIN Event Handlers ************************/
+        const addDiscussionTrees = async function () {
+            await _converse.api.waitUntil('roomsPanelRendered');
+            _converse.discussionTrees = new _converse.DiscussionTreeView({'model': _converse.});
+            /**
+             * Triggered once the _converse.Bookmarks collection and _converse.BookmarksView view
+             * has been created and cached bookmarks have been fetched.
+             * @event _converse#bookmarkViewsInitialized
+             * @example _converse.api.listen.on('bookmarkViewsInitialized', () => { ... });
+             */
+            _converse.api.trigger('discussionTreeViewsInitialized');
+        }
+        //change function to init with render html
+        _converse.api.listen.on('discussionTreeViewsInitialized', initBookmarkViews);
+
+        _converse.api.listen.on('chatRoomOpened', view => view.setBookmarkState());
+        /************************ END Event Handlers ************************/
+ 
     }
 });
