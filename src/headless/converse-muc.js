@@ -415,7 +415,7 @@ converse.plugins.add('converse-muc', {
 
             async onConnectionStatusChanged () {
                 if (this.get('connection_status') === converse.ROOMSTATUS.ENTERED) {
-                    this.occupants.fetchMembers();
+                    await this.occupants.fetchMembers();
                     // It's possible to fetch messages before entering a MUC,
                     // but we don't support this use-case currently. By
                     // fetching messages after members we can immediately
@@ -1836,7 +1836,11 @@ converse.plugins.add('converse-muc', {
             },
 
             isMember () {
-                return _.includes(['admin', 'owner', 'member'], this.get('affiliation'));
+                return ['admin', 'owner', 'member'].includes(this.get('affiliation'));
+            },
+
+            isModerator () {
+                return ['admin', 'owner'].includes(this.get('affiliation')) || this.get('role') === 'moderator';
             },
 
             isSelf () {
@@ -1862,13 +1866,13 @@ converse.plugins.add('converse-muc', {
 
             async fetchMembers () {
                 const new_members = await this.chatroom.getJidsWithAffiliations(['member', 'owner', 'admin']);
-                const new_jids = new_members.map(m => m.jid).filter(m => !_.isUndefined(m)),
-                      new_nicks = new_members.map(m => !m.jid && m.nick || undefined).filter(m => !_.isUndefined(m)),
-                      removed_members = this.filter(m => {
-                          return ['admin', 'member', 'owner'].includes(m.get('affiliation')) &&
-                                !new_nicks.includes(m.get('nick')) &&
-                                !new_jids.includes(m.get('jid'));
-                      });
+                const new_jids = new_members.map(m => m.jid).filter(m => !_.isUndefined(m));
+                const new_nicks = new_members.map(m => !m.jid && m.nick || undefined).filter(m => !_.isUndefined(m));
+                const removed_members = this.filter(m => {
+                        return ['admin', 'member', 'owner'].includes(m.get('affiliation')) &&
+                            !new_nicks.includes(m.get('nick')) &&
+                            !new_jids.includes(m.get('jid'));
+                    });
 
                 removed_members.forEach(occupant => {
                     if (occupant.get('jid') === _converse.bare_jid) { return; }
@@ -2090,12 +2094,8 @@ converse.plugins.add('converse-muc', {
                  *     JIDs of the chatroom(s) to create
                  * @param {object} [attrs] attrs The room attributes
                  */
-                create (jids, attrs) {
-                    if (_.isString(attrs)) {
-                        attrs = {'nick': attrs};
-                    } else if (_.isUndefined(attrs)) {
-                        attrs = {};
-                    }
+                create (jids, attrs={}) {
+                    attrs = _.isString(attrs) ? {'nick': attrs} : (attrs || {});
                     if (_.isUndefined(attrs.maximize)) {
                         attrs.maximize = false;
                     }
