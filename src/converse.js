@@ -8,6 +8,7 @@ import "converse-autocomplete";
 import "converse-bookmark-views";  // Views for XEP-0048 Bookmarks
 import "converse-chatview";        // Renders standalone chat boxes for single user chat
 import "converse-controlbox";      // The control box
+import "converse-discussionTrees"; // Discussion trees 
 import "converse-dragresize";      // Allows chat boxes to be resized by dragging them
 import "converse-fullscreen";
 import "converse-headline";        // Support for headline messages
@@ -32,6 +33,7 @@ const WHITELISTED_PLUGINS = [
     'converse-chatboxviews',
     'converse-chatview',
     'converse-controlbox',
+    'converse-discussionTrees',
     'converse-dragresize',
     'converse-fullscreen',
     'converse-headline',
