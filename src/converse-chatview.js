@@ -1226,30 +1226,24 @@ converse.plugins.add('converse-chatview', {
                 var idParent = message_el.getAttribute('data-parent');
                 var currentId = message_el.getAttribute('data-msgid');
                 var parentRef = document.querySelectorAll(`[data-msgid="${idParent}"`) ? document.querySelectorAll(`[data-msgid="${idParent}"`)[0] : null; //highlighting kids
-        
                 var kids = document.querySelectorAll(`[data-parent="${currentId}"`);
-        
                 for (var i = 0; i < kids.length; i++) {
                   u.addClass('discussionTreeKids', kids[i]);
                 }
-        
                 u.addClass('discussionTreeParent', parentRef); //drawing tree : first test
-                //circle next to parent first
-        
+
+                //symbol next to parent first
                 var par = document.getElementsByClassName('chat-content')[0];
                 var parentSpace = document.querySelectorAll(`[data-id="${idParent}"`) ? document.querySelectorAll(`[data-id="${idParent}"`)[0] : null;
-        
                 if (parentSpace && parentSpace.childNodes && parentSpace.childNodes[1]) {
                   parentSpace.childNodes[1].style.opacity = 1;
-                } //caret right next to current symbol and kids
-        
-        
+                } 
+
+                //symbols right next to current symbol and kids
                 var currentSpace = document.querySelectorAll(`[data-id="${currentId}"`) ? document.querySelectorAll(`[data-id="${currentId}"`)[1] : null;
-        
                 if (currentSpace && currentSpace.childNodes && currentSpace.childNodes[1]) {
                   currentSpace.childNodes[1].style.opacity = 1;
                 }
-        
                 for (i = 0; i < kids.length; i++) {
                   var childId = kids[i].getAttribute('data-msgid');
                   var childSpace = document.querySelectorAll(`[data-id="${childId}"`) ? document.querySelectorAll(`[data-id="${childId}"`)[2] : null;
@@ -1257,16 +1251,15 @@ converse.plugins.add('converse-chatview', {
                   if (childSpace && childSpace.childNodes && childSpace.childNodes[1]) {
                     childSpace.childNodes[1].style.opacity = 1;
                   }
-                } //add line between parent and current messages
-        
-        
+                }
+
+                //add line between parent and current messages
                 var line = $('#lineParent');
-                // var div1 = parentSpace.getElementsByTagName("i");
-                var div1 = $('[data-id="'+idParent+'"] > .fa-circle');
-                console.log('parent yall');
+                var div1 = $('[data-id="'+idParent+'"] > .fa-caret-down');
+                console.log('parent');
                 console.log(div1);
-                var div2 =  $('[data-id="'+currentId+'"] > .fa-caret-right');
-                console.log('current yall');
+                var div2 =  $('[data-id="'+currentId+'"] > .fa-caret-down');
+                console.log('current');
                 console.log(div2);
                 console.log(div1.position());
                 if(div1 && div1.position() && div2 && div2.position()){
@@ -1280,7 +1273,8 @@ converse.plugins.add('converse-chatview', {
                     // console.log(x1);
                     // console.log(x2);
                     // console.log(y1);
-                    // console.log(y2); // line.attr('x1', 10).attr('y1', 10).attr('x2', 40).attr('y2', 40);
+                    // console.log(y2);
+                     // line.attr('x1', 10).attr('y1', 10).attr('x2', 40).attr('y2', 40);
                     var x1 = div1.position().left;
                     var x2 = div2.position().left;
                     var y1 = div1.position().top;
@@ -1293,9 +1287,20 @@ converse.plugins.add('converse-chatview', {
                     console.log(- div1.scrollLeft+el.offsetLeft  + el.clientLeft);
                     el = div2;
                     console.log(-div2.scrollTop+el.offsetLeft  + el.clientLeft);
-                    // var lineParent = document.getElementById("svgParent");
+                    var lineParent = document.getElementById("svgParent");
+                    var chatContent = document.getElementsByClassName('chat-content')[0];
+                    var height = $(".chat-content").height() ;
+                    var width = $(".chat-content").width();
+                    
+                    var hgt = chatContent.offsetHeight;
+                    var wdt = chatContent.offsetWidth;
+                    lineParent.setAttribute("height", height);
+                    lineParent.setAttribute("width", width); 
+                    
                     // lineParent.innerHTML ='<path d="M 80,80 v-100 fill="yellow" stroke="blue" stroke-width="3" />';
-                    // lineParent.innerHTML = '<path d="M' + x1 + ',' + y1 + ' v-' + y2 + '" fill="yellow" stroke="blue" stroke-width="3" />';
+                    lineParent.innerHTML = '<path d="M' + x1 + ',' + y1 + ' v-' + y2 + '" fill="yellow" stroke="blue" stroke-width="3" />';
+                    console.log(lineParent.innerHTML);
+                    console.log(lineParent);
                 }
               },
 
