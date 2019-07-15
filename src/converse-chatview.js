@@ -1223,8 +1223,8 @@ converse.plugins.add('converse-chatview', {
                 ev.preventDefault();
                 const message_el = u.ancestor(ev.target, '.chat-msg');
                 u.addClass('discussionTree', message_el);
-                var idParent = message_el.getAttribute('data-parent');
                 var currentId = message_el.getAttribute('data-msgid');
+                var idParent = message_el.getAttribute('data-parent');
                 var parentRef = document.querySelectorAll(`[data-msgid="${idParent}"`) ? document.querySelectorAll(`[data-msgid="${idParent}"`)[0] : null; //highlighting kids
                 var kids = document.querySelectorAll(`[data-parent="${currentId}"`);
                 for (var i = 0; i < kids.length; i++) {
@@ -1253,83 +1253,77 @@ converse.plugins.add('converse-chatview', {
                   }
                 }
 
-                //add line between parent and current messages
-                var line = $('#lineParent');
                 var div1 = $('[data-id="'+idParent+'"] > .fa-caret-down');
-                console.log('parent');
-                console.log(div1);
-                var div2 =  $('[data-id="'+currentId+'"] > .fa-caret-down');
-                console.log('current');
-                console.log(div2);
-                console.log(div1.position());
-                if(div1 && div1.position() && div2 && div2.position()){
-                    // var x1 = (this.getOffset(div1).left+window.pageXOffset)/2;
-                    // var y1 = (this.getOffset(div1).top +window.pageYOffset)/2;
-                    // var x2 = (this.getOffset(div2).left+window.pageXOffset)/2;
-                    // var y2 = (this.getOffset(div2).top+window.pageYOffset) /2;
-                    console.log('coordinates'); // console.log(this.getOffset(div1));
-                    // console.log(this.getOffset(div2));
-            
-                    // console.log(x1);
-                    // console.log(x2);
-                    // console.log(y1);
-                    // console.log(y2);
-                     // line.attr('x1', 10).attr('y1', 10).attr('x2', 40).attr('y2', 40);
+                var div2 =  $('[data-id="'+currentId+'"] > .fa-level-up-alt');                
+                if(div1){
                     var x1 = div1.position().left;
-                    var x2 = div2.position().left;
                     var y1 = div1.position().top;
+                    console.log('setting style ');
+                    document.querySelectorAll('.discussionTree')[0].style.setProperty("--top-current", (y1+11)+"px");
+                    document.querySelectorAll('.discussionTree')[0].style.setProperty("--left-current", (x1+8)+"px");
+                    var x2 = div2.position().left;
                     var y2 = div2.position().top;
-                    var el = div1;
-                    console.log(x1);
-                    console.log(y1);
-                    console.log(x2);
-                    console.log(y2);
-                    console.log(- div1.scrollLeft+el.offsetLeft  + el.clientLeft);
-                    el = div2;
-                    console.log(-div2.scrollTop+el.offsetLeft  + el.clientLeft);
-                    var lineParent = document.getElementById("svgParent");
-                    var chatContent = document.getElementsByClassName('chat-content')[0];
-                    var height = $(".chat-content").height() ;
-                    var width = $(".chat-content").width();
+                    //probably a relative position issue..
+                    console.log(div2.position());
+                    document.querySelectorAll('.discussionTree')[0].style.setProperty("--bottom-current", (y2)+"px");
+                    console.log(document.querySelectorAll('.discussionTree')[0].style.getPropertyValue("--top-current"));
+                    console.log(document.querySelectorAll('.discussionTree')[0].style.getPropertyValue("--left-current"));
+                    console.log(document.querySelectorAll('.discussionTree')[0].style.getPropertyValue("--bottom-current"));
+                }
+                for(i = 0; i < kids.length; i++ ){
+                    childId = kids[i].getAttribute('data-msgid');
+                    childSpace = document.querySelectorAll(`[data-id="${childId}"`) ? document.querySelectorAll(`[data-id="${childId}"`)[2] : null;
+                    var childElement = $('[data-id="'+childId+'"] > .fa-caret-right');
+                    // console.log(childElement.position());
+                }
+
+      
+                //add line between parent and current messages
+                // var line = $('#lineParent');
+                // var div1 = $('[data-id="'+idParent+'"] > .fa-caret-down');
+                // console.log('parent');
+                // console.log(div1);
+                // var div2 =  $('[data-id="'+currentId+'"] > .fa-caret-down');
+                // console.log('current');
+                // console.log(div2);
+                // console.log(div1.position());
+                // if(div1 && div1.position() && div2 && div2.position()){
+                //     // var x1 = (this.getOffset(div1).left+window.pageXOffset)/2;
+                //     // var y1 = (this.getOffset(div1).top +window.pageYOffset)/2;
+                //     // var x2 = (this.getOffset(div2).left+window.pageXOffset)/2;
+                //     // var y2 = (this.getOffset(div2).top+window.pageYOffset) /2;
+                //     console.log('coordinates'); // console.log(this.getOffset(div1));
+                //     // console.log(this.getOffset(div2));
+            
+                //      var x1 = div1.position().left;
+                //     var x2 = div2.position().left;
+                //     var y1 = div1.position().top;
+                //     var y2 = div2.position().top-50;
+                //     var el = div1;
+                    // console.log(x1);
+                    // console.log(y1);
+                    // console.log(x2);
+                    // console.log(y2);
+                    // console.log(- div1.scrollLeft+el.offsetLeft  + el.clientLeft);
+                    // el = div2;
+                    // console.log(-div2.scrollTop+el.offsetLeft  + el.clientLeft);
+                    // var lineParent = document.getElementById("svgParent");
+                    // var chatContent = document.getElementsByClassName('chat-content')[0];
+                    // var height = $(".chat-content").height() ;
+                    // var width = $(".chat-content").width();
                     
-                    var hgt = chatContent.offsetHeight;
-                    var wdt = chatContent.offsetWidth;
-                    lineParent.setAttribute("height", height);
-                    lineParent.setAttribute("width", width); 
+                    // var hgt = chatContent.offsetHeight;
+                    // var wdt = chatContent.offsetWidth;
+                    // lineParent.setAttribute("height", height);
+                    // lineParent.setAttribute("width", width); 
                     
                     // lineParent.innerHTML ='<path d="M 80,80 v-100 fill="yellow" stroke="blue" stroke-width="3" />';
-                    lineParent.innerHTML = '<path d="M' + x1 + ',' + y1 + ' v-' + y2 + '" fill="yellow" stroke="blue" stroke-width="3" />';
-                    console.log(lineParent.innerHTML);
-                    console.log(lineParent);
+                    // lineParent.innerHTML = '<path d="M' + x1 + ',' + y1 + ' v-' + y2 + '" fill="yellow" stroke="blue" stroke-width="3" />';
+                    // console.log(lineParent.innerHTML);
+                    // console.log(lineParent);
                 }
-              },
+              ,
 
-
-            getPosition(el) {
-                var xPos = 0;
-                var yPos = 0;
-               
-                while (el) {
-                  if (el.tagName == "BODY") {
-                    // deal with browser quirks with body/window/document and page scroll
-                    var xScroll = el.scrollLeft || document.documentElement.scrollLeft;
-                    var yScroll = el.scrollTop || document.documentElement.scrollTop;
-               
-                    xPos += (el.offsetLeft - xScroll + el.clientLeft);
-                    yPos += (el.offsetTop - yScroll + el.clientTop);
-                  } else {
-                    // for all other non-BODY elements
-                    xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
-                    yPos += (el.offsetTop - el.scrollTop + el.clientTop);
-                  }
-               
-                  el = el.offsetParent;
-                }
-                return {
-                  x: xPos,
-                  y: yPos
-                };
-              },
 
             dehighlightParents(ev) {
                 ev.preventDefault();
@@ -1361,8 +1355,8 @@ converse.plugins.add('converse-chatview', {
                         childSpace.childNodes[1].style.opacity = 0;
                     }
                 }
-                var lineParent = document.getElementById("svgParent");
-                lineParent.innerHTML ='';
+                // var lineParent = document.getElementById("svgParent");
+                // lineParent.innerHTML ='';
   
             },
             //done adding

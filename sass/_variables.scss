@@ -57,10 +57,10 @@ $mobile_portrait_length: 480px !default;
     --chat-head-text-color: white;
     --chat-correcting-color: var(--chat-head-color-lighten-50-percent);
     --chat-replying-color: var(--chat-head-color-darken-50-percent);
-    --chat-disctree-color: rgba(86, 240, 86, 0.575);
-    --chat-disctreeparent-color: yellow;
-    --chat-disctreekid-color: palevioletred;
-
+    --chat-disctree-color: rgba(0, 0 , 0, 0.080);
+    --chat-disctreeparent-color: rgba(0, 0 , 0, 0.140);
+    --chat-disctreekid-color:  rgba(0, 0 , 0, 0.060);
+    
 
     --chat-topic-display: block;
     --chat-info-display: block;

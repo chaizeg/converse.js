@@ -116,70 +116,19 @@
                     opacity: 0;
                     font-size: 1.5em;
                 }
-                // position: relative;
-                //     left: 7px;
-                //     content: "\25B6";    
-                //     font-size: 16px;
-                //     border-color: transparent;
-                //     position: absolute;
-                //     display: none;
-                //     vertical-align: middle; 
             }   
 
             &.discussionTree{
-                // position: relative;
-                // cursor: pointer; 
-                // // user-select: none; 
-                // &::before {
-                //     content: "\25B6";
-                //     color: black;
-                //     display: inline-block;
-                //     margin-right: 6px;
-                // }
-                   
+                box-shadow: 3px 3px 5px 2px #ccc;
                 &.groupchat  {
                     background-color: var(--chatroom-disctree-color);
                 }
                 &:not(.groupchat) {
                     background-color: var(--chat-disctree-color);
                 }
-                // &::before {
-                //     left: 7px;
-                //     content: "\25B6";    
-                //     font-size: 16px;
-                //     border-color: transparent;
-                //     position: absolute;
-                //     display: inline-block;
-                //     vertical-align: middle; 
-                // }
-                // &::before{
-                //     border-top: 1px solid #000;
-                //     top: 9px;
-                //     width: 8px;
-                //     height: 0;
-                // }
-
             }
             &.discussionTreeParent{
-                // position: relative;
-                /*cursor: pointer; 
-                user-select: none; 
-                &::before {
-                    content: "\25B6";
-                    color: black;
-                    display: inline-block;
-                    margin-right: 6px;
-                    transform: rotate(90deg); 
-                // }*/
-                // &::before{
-                //     left: -2px;
-                //     content: "\25CF";
-                //     font-size: 20px;
-                //     border-color: transparent;
-                //     position: absolute;
-                //     display: inline-block;
-                //     vertical-align: middle;
-                // }
+                box-shadow: 3px 3px 2px 2px #ccc;
                 &.groupchat  {
                     background-color: var(--chatroom-disctreeparent-color);;
                 }
@@ -189,31 +138,13 @@
             }
 
             &.discussionTreeKids{
-                // position: relative;
-                /*cursor: pointer; 
-                user-select: none; 
-                &::before {
-                    content: "\25B6";
-                    color: black;
-                    display: inline-block;
-                    margin-right: 6px;
-                    transform: rotate(90deg); 
-                }*/
+                box-shadow: 3px 3px 8px 2px #ccc;
                 &.groupchat  {
                     background-color: var(--chatroom-disctreekid-color);
                 }
                 &:not(.groupchat) {
                     background-color: var(--chat-disctreekid-color);
                 }
-                // &::before {
-                //     left: 14px;
-                //     content: "\25B6";
-                //     font-size: 16px;
-                //     border-color: transparent;
-                //     position: absolute;
-                //     display: inline-block;
-                //     vertical-align: middle; 
-                // }
             }
             .spoiler {
                 margin-top: 0.5em;

@@ -647,7 +647,7 @@ converse.plugins.add('converse-chatboxes', {
                     stanza.c('origin-id', {'xmlns': Strophe.NS.SID, 'id': message.get('origin_id')}).root();
                 }
                 //XEP-0367 : Message attaching 
-                if(message.get('reaction' ||message.get('repliesTo'))){
+                if(message.get('repliesTo')){
                     stanza.c('attach-to', {'id': message.get('repliesTo'), 'xmlns': 'urn:xmpp:message-attaching:1'}).root();
                     console.log(stanza);
                 }
@@ -714,12 +714,7 @@ converse.plugins.add('converse-chatboxes', {
                     message = this.messages.create(attrs);
                 }
 
-                if(extraAttrs.reaction){
-                    message.save('message', extraAttrs.reaction);
-                    message.save('reaction', extraAttrs.reaction);
-                    message.save('repliesTo', extraAttrs.repliesTo);
-                }
-                if(extraAttrs.repliesTo){
+                if(extraAttrs && extraAttrs.repliesTo){
                     message.save({
                         repliesTo: extraAttrs.repliesTo
                     });
