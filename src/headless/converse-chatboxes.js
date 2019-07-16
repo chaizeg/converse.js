@@ -3,7 +3,9 @@
 //
 // Copyright (c) 2012-2019, the Converse.js developers
 // Licensed under the Mozilla Public License (MPLv2)
-
+/**
+ * @module converse-chatboxes
+ */
 import "./utils/emoji";
 import "./utils/form";
 import BrowserStorage from "backbone.browserStorage";
@@ -402,6 +404,39 @@ converse.plugins.add('converse-chatboxes', {
             },
 
             /**
+             * Mutator for setting the chat state of this chat session.
+             * Handles clearing of any chat state notification timeouts and
+             * setting new ones if necessary.
+             * Timeouts are set when the  state being set is COMPOSING or PAUSED.
+             * After the timeout, COMPOSING will become PAUSED and PAUSED will become INACTIVE.
+             * See XEP-0085 Chat State Notifications.
+             * @private
+             * @method _converse.ChatBox#setChatState
+             * @param { string } state - The chat state (consts ACTIVE, COMPOSING, PAUSED, INACTIVE, GONE)
+             */
+            setChatState (state, options) {
+                if (!_.isUndefined(this.chat_state_timeout)) {
+                    window.clearTimeout(this.chat_state_timeout);
+                    delete this.chat_state_timeout;
+                }
+                if (state === _converse.COMPOSING) {
+                    this.chat_state_timeout = window.setTimeout(
+                        this.setChatState.bind(this),
+                        _converse.TIMEOUTS.PAUSED,
+                        _converse.PAUSED
+                    );
+                } else if (state === _converse.PAUSED) {
+                    this.chat_state_timeout = window.setTimeout(
+                        this.setChatState.bind(this),
+                        _converse.TIMEOUTS.INACTIVE,
+                        _converse.INACTIVE
+                    );
+                }
+                this.set('chat_state', state, options);
+                return this;
+            },
+
+            /**
              * @private
              * @method _converse.ChatBox#shouldShowErrorMessage
              * @returns {boolean}
@@ -603,12 +638,21 @@ converse.plugins.add('converse-chatboxes', {
              */
             createMessageStanza (message) {
                 const stanza = $msg({
-                        'from': _converse.connection.jid,
-                        'to': this.get('jid'),
-                        'type': this.get('message_type'),
-                        'id': message.get('edited') && _converse.connection.getUniqueId() || message.get('msgid'),
-                    }).c('body').t(message.get('message')).up()
-                      .c(_converse.ACTIVE, {'xmlns': Strophe.NS.CHATSTATES}).root();
+                    'from': _converse.connection.jid,
+                    'to': this.get('jid'),
+                    'type': this.get('message_type'),
+                    'id': message.get('edited') && _converse.connection.getUniqueId() || message.get('msgid'),
+                }).c(_converse.ACTIVE, {'xmlns': Strophe.NS.CHATSTATES}).root();
+
+                if(!message.get('reactsTo')){
+                    stanza.c('body').t(message.get('message')).up();
+                    console.log('no reactions ');
+                    console.log(stanza);
+                }
+                else{
+                    console.log('with reactions ');
+                    console.log(stanza);
+                }
 
                 if (message.get('type') === 'chat') {
                     stanza.c('request', {'xmlns': Strophe.NS.RECEIPTS}).root();
@@ -645,6 +689,12 @@ converse.plugins.add('converse-chatboxes', {
                 if (message.get('origin_id')) {
                     stanza.c('origin-id', {'xmlns': Strophe.NS.SID, 'id': message.get('origin_id')}).root();
                 }
+                //XEP - MESSAGE REACTIONS
+                if(message.get('reactsTo')){
+                    stanza.c('reactions', {'id': message.get('reactsTo'), 'xmlns': 'urn:xmpp:reactions:0'}).c('reaction').t(message.get('message')).root();
+                    console.log('final reaction');
+                    console.log(stanza);
+                }
                 return stanza;
             },
 
@@ -675,15 +725,19 @@ converse.plugins.add('converse-chatboxes', {
              *
              * @method _converse.ChatBox#sendMessage
              * @memberOf _converse.ChatBox
-             *
              * @param {String} text - The chat message text
              * @param {String} spoiler_hint - An optional hint, if the message being sent is a spoiler
-             *
+             * @param {Object} extraAttrs - extra attributes, in case a message is a reply to a previous message
+
              * @example
              * const chat = _converse.api.chats.get('buddy1@example.com');
              * chat.sendMessage('hello world');
              */
-            sendMessage (text, spoiler_hint) {
+            sendMessage (text, spoiler_hint, extraAttrs) {
+                var argReaction = null;
+                if(extraAttrs && extraAttrs.reactsTo){
+                    argReaction = extraAttrs.reactsTo;
+                }
                 const attrs = this.getOutgoingMessageAttributes(text, spoiler_hint);
                 let message = this.messages.findWhere('correcting')
                 if (message) {
@@ -701,15 +755,22 @@ converse.plugins.add('converse-chatboxes', {
                 } else {
                     message = this.messages.create(attrs);
                 }
+                if(extraAttrs && extraAttrs.reactsTo){
+                    message.save({
+                        reactsTo: extraAttrs.reactsTo
+                    });
+                }
                 _converse.api.send(this.createMessageStanza(message));
                 return true;
             },
 
+            /**
+             * Sends a message with the current XEP-0085 chat state of the user
+             * as taken from the `chat_state` attribute of the {@link _converse.ChatBox}.
+             * @private
+             * @method _converse.ChatBox#sendChatState
+             */
             sendChatState () {
-                /* Sends a message with the status of the user in this chat session
-                 * as taken from the 'chat_state' attribute of the chat box.
-                 * See XEP-0085 Chat State Notifications.
-                 */
                 if (_converse.send_chat_state_notifications && this.get('chat_state')) {
                     _converse.api.send(
                         $msg({
@@ -883,7 +944,7 @@ converse.plugins.add('converse-chatboxes', {
                         attrs.fullname = _converse.xmppstatus.get('fullname');
                     } else {
                         attrs.sender = 'them';
-                        attrs.fullname = this.get('fullname') || this.get('fullname')
+                        attrs.fullname = this.get('fullname');
                     }
                 }
                 sizzle(`x[xmlns="${Strophe.NS.OUTOFBAND}"]`, stanza).forEach(xform => {

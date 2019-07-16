@@ -3,7 +3,9 @@
 //
 // Copyright (c) 2013-2019, the Converse.js developers
 // Licensed under the Mozilla Public License (MPLv2)
-
+/**
+ * @module converse-modal
+ */
 import "backbone.vdomview";
 import bootstrap from "bootstrap.native";
 import converse from "@converse/headless/converse-core";
@@ -100,7 +102,8 @@ converse.plugins.add('converse-modal', {
                         alert.model.set({
                             'title': title,
                             'messages': messages,
-                            'type': type
+                            'type': type,
+                            'reactionInProgress': reactionInProgress
                         });
                     }
                     alert.show();
