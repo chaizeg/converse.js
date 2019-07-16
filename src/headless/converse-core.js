@@ -3,11 +3,12 @@
 //
 // Copyright (c) 2013-2019, the Converse.js developers
 // Licensed under the Mozilla Public License (MPLv2)
-
-import * as bosh from 'strophe.js/src/bosh';
+/**
+ * @module converse-core
+ */
+import 'strophe.js/src/bosh';
+import 'strophe.js/src/websocket';
 import * as strophe from 'strophe.js/src/core';
-import * as websocket from 'strophe.js/src/websocket';
-
 import Backbone from 'backbone';
 import BrowserStorage from 'backbone.browserStorage';
 import Promise from 'es6-promise/dist/es6-promise.auto';
@@ -211,7 +212,7 @@ _converse.default_settings = {
     csi_waiting_time: 0, // Support for XEP-0352. Seconds before client is considered idle and CSI is sent out.
     debug: false,
     default_state: 'online',
-    geouri_regex: /https:\/\/www.openstreetmap.org\/.*#map=[0-9]+\/([\-0-9.]+)\/([\-0-9.]+)\S*/g,
+    geouri_regex: /https\:\/\/www.openstreetmap.org\/.*#map=[0-9]+\/([\-0-9.]+)\/([\-0-9.]+)\S*/g,
     geouri_replacement: 'https://www.openstreetmap.org/?mlat=$1&mlon=$2#map=18/$1/$2',
     idle_presence_timeout: 300, // Seconds after which an idle presence is sent
     jid: undefined,
@@ -259,25 +260,17 @@ _converse.log = function (message, level, style='') {
         message = message.outerHTML;
     }
     const prefix = style ? '%c' : '';
-    const logger = Object.assign({
-            'debug': _.get(console, 'log') ? console.log.bind(console) : _.noop,
-            'error': _.get(console, 'log') ? console.log.bind(console) : _.noop,
-            'info': _.get(console, 'log') ? console.log.bind(console) : _.noop,
-            'warn': _.get(console, 'log') ? console.log.bind(console) : _.noop
-        }, console);
     if (level === Strophe.LogLevel.ERROR) {
-        logger.error(`${prefix} ERROR: ${message}`, style);
+        u.logger.error(`${prefix} ERROR: ${message}`, style);
     } else if (level === Strophe.LogLevel.WARN) {
-        if (_converse.debug) {
-            logger.warn(`${prefix} ${(new Date()).toISOString()} WARNING: ${message}`, style);
-        }
+        u.logger.warn(`${prefix} ${(new Date()).toISOString()} WARNING: ${message}`, style);
     } else if (level === Strophe.LogLevel.FATAL) {
-        logger.error(`${prefix} FATAL: ${message}`, style);
+        u.logger.error(`${prefix} FATAL: ${message}`, style);
     } else if (_converse.debug) {
         if (level === Strophe.LogLevel.DEBUG) {
-            logger.debug(`${prefix} ${(new Date()).toISOString()} DEBUG: ${message}`, style);
+            u.logger.debug(`${prefix} ${(new Date()).toISOString()} DEBUG: ${message}`, style);
         } else {
-            logger.info(`${prefix} ${(new Date()).toISOString()} INFO: ${message}`, style);
+            u.logger.info(`${prefix} ${(new Date()).toISOString()} INFO: ${message}`, style);
         }
     }
 };
@@ -735,7 +728,7 @@ _converse.initialize = async function (settings, callback) {
     this.generateResource = () => `/converse.js-${Math.floor(Math.random()*139749528).toString()}`;
 
     /**
-     * Send out a Chat Status Notification (XEP-0352)
+     * Send out a Client State Indication (XEP-0352)
      * @private
      * @method sendCSI
      * @memberOf _converse
@@ -1223,7 +1216,7 @@ _converse.initialize = async function (settings, callback) {
         if (credentials) {
             this.autoLogin(credentials);
         } else if (this.auto_login) {
-            if (this.credentials_url) {
+            if (this.credentials_url && _converse.authentication === _converse.LOGIN) {
                 const data = await getLoginCredentials();
                 this.autoLogin(data);
             } else if (!this.jid) {
@@ -1235,7 +1228,8 @@ _converse.initialize = async function (settings, callback) {
                     "(via credentials_url)."
                 );
             } else {
-                this.autoLogin(); // Could be ANONYMOUS or EXTERNAL
+                // Could be ANONYMOUS or EXTERNAL or manual passing in of JID and password
+                this.autoLogin();
             }
         } else if (reconnecting) {
             this.autoLogin();
@@ -1767,17 +1761,23 @@ _converse.api = {
     },
 
     /**
-     * Wait until a promise is resolved
+     * Wait until a promise is resolved or until the passed in function returns
+     * a truthy value.
      * @method _converse.api.waitUntil
-     * @param {string} name The name of the promise
+     * @param {string|function} condition - The name of the promise to wait for,
+     * or a function which should eventually return a truthy value.
      * @returns {Promise}
      */
-    waitUntil (name) {
-        const promise = _converse.promises[name];
-        if (_.isUndefined(promise)) {
-            return null;
+    waitUntil (condition) {
+        if (_.isFunction(condition)) {
+            return u.waitUntil(condition);
+        } else {
+            const promise = _converse.promises[condition];
+            if (_.isUndefined(promise)) {
+                return null;
+            }
+            return promise;
         }
-        return promise;
     },
 
     /**
