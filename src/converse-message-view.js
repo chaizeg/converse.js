@@ -89,6 +89,8 @@ converse.plugins.add('converse-message-view', {
                     // it no longer has a collection
                     if (this.model.collection) {
                         this.render();
+                        console.log('middle');
+                        this.renderLast();
                     }
                 }, 50);
 
@@ -129,11 +131,26 @@ converse.plugins.add('converse-message-view', {
                     this.renderErrorMessage();
                 } else if (this.model.get('type') === 'info') {
                     this.renderInfoMessage();
-                } else {
+                } 
+                // else if(this.model.get('reactsTo')){
+                    // //todo
+                    // console.log('called');
+                    // await this.renderReaction();
+                // }
+                 else {
                     await this.renderChatMessage();
                 }
                 if (is_followup) {
                     u.addClass('chat-msg--followup', this.el);
+                }
+                return this.el;
+            },
+
+            async renderLast () {
+                if(this.model.get('reactsTo')){
+                    // //todo
+                    console.log('called');
+                    this.renderReaction();
                 }
                 return this.el;
             },
@@ -189,7 +206,12 @@ converse.plugins.add('converse-message-view', {
                 const time = dayjs(this.model.get('time'));
                 const role = this.model.vcard ? this.model.vcard.get('role') : null;
                 const roles = role ? role.split(',') : [];
-
+                if(this.model.get('reactsTo')){
+                    // console.log('reactiosns suuuure');
+                    // console.log(this.model);
+                    // this.renderReaction();
+                    return;
+                 }
                 const msg = u.stringToElement(tpl_message(
                     Object.assign(
                         this.model.toJSON(), {
@@ -205,7 +227,7 @@ converse.plugins.add('converse-message-view', {
                         'username': this.model.getDisplayName()
                     })
                 ));
-
+                //this.model.get('reactsTo')
                 const url = this.model.get('oob_url');
                 if (url) {
                     msg.querySelector('.chat-msg__media').innerHTML = _.flow(
@@ -293,6 +315,37 @@ converse.plugins.add('converse-message-view', {
                             'from': from,
                             'isodate': isodate
                         })));
+            },
+
+            renderReaction(){
+                console.log('rendering reaction');
+                var message = document.querySelectorAll(`[data-msgid="${this.model.get('reactsTo')}"`)? 
+                            document.querySelectorAll(`[data-msgid="${this.model.get('reactsTo')}"`): null ;
+                console.log(message);
+                if(message != null && message != undefined && message.length > 0 ){
+                    var body = message[0].querySelectorAll('.chat-msg__body');
+                    var reacts = message[0].querySelectorAll('.chat-msg__reactions');
+                    if(body != null && body != undefined && body.length > 0 && reacts != null && reacts != undefined && reacts.length > 0){
+                        if(body[0].getElementsByClassName(this.model.get('message')) == null ||
+                            body[0].getElementsByClassName(this.model.get('message')) == undefined || 
+                            body[0].getElementsByClassName(this.model.get('message')).length == 0)
+                        {
+                            var reaction = document.createElement('div');
+                            reaction.id = this.model.get('message');
+                            reaction.className = "react";
+                            reaction.innerHTML = this.model.get('message') +" +";
+                            var counter = document.createElement('span');
+                            counter.innerHTML = '1';
+                            reaction.appendChild(counter);
+                            var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
+                            console.log(refNode);
+                            body[0].insertBefore(reaction, refNode.nextSibling);
+                        } else {
+                            var counter = body[0].getElementById(this.model.get('message')).getElementsByTagName('span')[0];
+                            counter.innerHTML = parseInt(counter.innerHTML)+1;
+                        }
+                    }
+                }    
             },
 
             renderFileUploadProgresBar () {

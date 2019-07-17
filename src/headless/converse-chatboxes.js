@@ -698,7 +698,7 @@ converse.plugins.add('converse-chatboxes', {
                 return stanza;
             },
 
-            getOutgoingMessageAttributes (text, spoiler_hint) {
+            getOutgoingMessageAttributes (text, spoiler_hint, parentMsg) {
                 const is_spoiler = this.get('composing_spoiler');
                 const origin_id = _converse.connection.getUniqueId();
                 return {
@@ -711,6 +711,7 @@ converse.plugins.add('converse-chatboxes', {
                     'from': _converse.bare_jid,
                     'is_single_emoji': text ? u.isSingleEmoji(text) : false,
                     'sender': 'me',
+                    'reactsTo': parentMsg,
                     'time': (new Date()).toISOString(),
                     'message': text ? u.httpToGeoUri(u.shortnameToUnicode(text), _converse) : undefined,
                     'is_spoiler': is_spoiler,
@@ -738,7 +739,7 @@ converse.plugins.add('converse-chatboxes', {
                 if(extraAttrs && extraAttrs.reactsTo){
                     argReaction = extraAttrs.reactsTo;
                 }
-                const attrs = this.getOutgoingMessageAttributes(text, spoiler_hint);
+                const attrs = this.getOutgoingMessageAttributes(text, spoiler_hint, argReaction);
                 let message = this.messages.findWhere('correcting')
                 if (message) {
                     const older_versions = message.get('older_versions') || {};
