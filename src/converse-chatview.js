@@ -1209,7 +1209,7 @@ converse.plugins.add('converse-chatview', {
                 var parentSpace = document.querySelectorAll(`[data-id="${idParent}"`) ? document.querySelectorAll(`[data-id="${idParent}"`)[0] : null;
                 if (parentSpace && parentSpace.childNodes && parentSpace.childNodes[1]) {
                   parentSpace.childNodes[1].style.opacity = 1;
-                } 
+                }
 
                 //symbols right next to current symbol and kids
                 var currentSpace = document.querySelectorAll(`[data-id="${currentId}"`) ? document.querySelectorAll(`[data-id="${currentId}"`)[1] : null;
