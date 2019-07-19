@@ -79,6 +79,9 @@ converse.plugins.add('converse-message-view', {
 
 
         _converse.MessageView = _converse.ViewWithAvatar.extend({
+
+            savedReactions: [],
+
             events: {
                 'click .chat-msg__edit-modal': 'showMessageVersionsModal'
             },
@@ -88,9 +91,9 @@ converse.plugins.add('converse-message-view', {
                     // If the model gets destroyed in the meantime,
                     // it no longer has a collection
                     if (this.model.collection) {
+                        console.log('rendering this msg');
+                        console.log(this.model);
                         this.render();
-                        console.log('middle');
-                        this.renderLast();
                     }
                 }, 50);
 
@@ -131,27 +134,13 @@ converse.plugins.add('converse-message-view', {
                     this.renderErrorMessage();
                 } else if (this.model.get('type') === 'info') {
                     this.renderInfoMessage();
-                } 
-                // else if(this.model.get('reactsTo')){
-                    // //todo
-                    // console.log('called');
-                    // await this.renderReaction();
-                // }
-                 else {
+                } else {
                     await this.renderChatMessage();
                 }
                 if (is_followup) {
                     u.addClass('chat-msg--followup', this.el);
                 }
-                return this.el;
-            },
 
-            async renderLast () {
-                if(this.model.get('reactsTo')){
-                    // //todo
-                    console.log('called');
-                    this.renderReaction();
-                }
                 return this.el;
             },
 
@@ -169,6 +158,15 @@ converse.plugins.add('converse-message-view', {
                 }
                 if (edited) {
                     this.onMessageEdited();
+                    if(this.savedReactions.length > 0)
+                    {
+                        var currentThis = this.model;
+                        for(var i = 0; i < this.savedReactions.length ; i++){
+                            this.model = this.savedReactions[i];
+                            this.renderReaction();
+                        }
+                        this.model = currentThis;
+                    }
                 }
             },
 
@@ -190,6 +188,8 @@ converse.plugins.add('converse-message-view', {
                     () => u.removeClass('onload', this.el),
                     {'once': true}
                 );
+                
+                    
                 u.addClass('onload', this.el);
             },
 
@@ -207,9 +207,11 @@ converse.plugins.add('converse-message-view', {
                 const role = this.model.vcard ? this.model.vcard.get('role') : null;
                 const roles = role ? role.split(',') : [];
                 if(this.model.get('reactsTo')){
-                    // console.log('reactiosns suuuure');
-                    // console.log(this.model);
-                    // this.renderReaction();
+                    // this.savedReactions.push(this.model);
+                    console.log('reaction being rendered');
+                    console.log(this.model);
+                    this.renderReaction();
+                    console.log('done rendering reaction');
                     return;
                  }
                 const msg = u.stringToElement(tpl_message(
@@ -227,7 +229,6 @@ converse.plugins.add('converse-message-view', {
                         'username': this.model.getDisplayName()
                     })
                 ));
-                //this.model.get('reactsTo')
                 const url = this.model.get('oob_url');
                 if (url) {
                     msg.querySelector('.chat-msg__media').innerHTML = _.flow(
@@ -255,6 +256,17 @@ converse.plugins.add('converse-message-view', {
                 const promise = u.renderImageURLs(_converse, msg_content);
                 if (this.model.get('type') !== 'headline') {
                     this.renderAvatar(msg);
+                }
+                //re-rendering reactions 
+                if(this.savedReactions.length > 0)
+                {
+                    var savedLength = this.savedReactions.length;
+                    var currentThis = this.model;
+                    for(var i = 0; i < savedLength ; i++){
+                        this.model = this.savedReactions[i];
+                        this.renderReaction();
+                    }
+                    this.model = currentThis;
                 }
                 await promise;
                 this.replaceElement(msg);
@@ -318,34 +330,66 @@ converse.plugins.add('converse-message-view', {
             },
 
             renderReaction(){
-                console.log('rendering reaction');
                 var message = document.querySelectorAll(`[data-msgid="${this.model.get('reactsTo')}"`)? 
                             document.querySelectorAll(`[data-msgid="${this.model.get('reactsTo')}"`): null ;
-                console.log(message);
+                console.log('yano..just checking');
+                console.log(document.querySelectorAll(`[data-reactionid="${this.model.get('msgid')}"`));
+                if(document.querySelectorAll(`[data-reactionid="${this.model.get('msgid')}"`)!= null && document.querySelectorAll(`[data-reactionid="${this.model.get('msgid')}"`)!= undefined
+                     && document.querySelectorAll(`[data-reactionid="${this.model.get('msgid')}"`).length > 0){
+                    console.log('duplicate!!');
+                    console.log(this.model);
+                    return; //reaction aleady rendered : avoiding duplicates
+                }
+                var exists = false;
+                for(var i = 0; i < this.savedReactions.length; i++){
+                    if(this.savedReactions[i].get('msgid')==this.model.get('msgid')){
+                        console.log('exists');
+                        exists = true;
+                        break;
+                    }
+                }
+                if(!exists){
+                    console.log('didnt exist..');
+                    this.savedReactions.push(this.model);
+                }
                 if(message != null && message != undefined && message.length > 0 ){
                     var body = message[0].querySelectorAll('.chat-msg__body');
-                    var reacts = message[0].querySelectorAll('.chat-msg__reactions');
-                    if(body != null && body != undefined && body.length > 0 && reacts != null && reacts != undefined && reacts.length > 0){
-                        if(body[0].getElementsByClassName(this.model.get('message')) == null ||
-                            body[0].getElementsByClassName(this.model.get('message')) == undefined || 
-                            body[0].getElementsByClassName(this.model.get('message')).length == 0)
-                        {
-                            var reaction = document.createElement('div');
-                            reaction.id = this.model.get('message');
-                            reaction.className = "react";
-                            reaction.innerHTML = this.model.get('message') +" +";
-                            var counter = document.createElement('span');
-                            counter.innerHTML = '1';
-                            reaction.appendChild(counter);
-                            var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
-                            console.log(refNode);
-                            body[0].insertBefore(reaction, refNode.nextSibling);
-                        } else {
-                            var counter = body[0].getElementById(this.model.get('message')).getElementsByTagName('span')[0];
-                            counter.innerHTML = parseInt(counter.innerHTML)+1;
-                        }
+                    if(body != null && body != undefined && body.length > 0){
+                            var prevReact =  body[0].querySelectorAll('#'+this.model.get('message'));
+                            if(prevReact == null || prevReact == undefined || prevReact.length == 0)
+                            {
+                                console.log('no previous similar reaction');
+                                var reaction = document.createElement('div');
+                                reaction.id = this.model.get('message');
+                                reaction.className = "react";
+                                reaction.setAttribute('data-reactionid', this.model.get('msgid'));
+                                console.log(reaction.getAttribute('data-reactionid'));
+                                reaction.innerHTML = this.model.get('message') +" +";
+                                var counter = document.createElement('span');
+                                counter.innerHTML = '1';
+                                reaction.appendChild(counter);
+                                var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
+                                console.log(refNode.nextSibling);
+                                //insertion of reaction doesn't always work out.. todo
+                                var retour = body[0].insertBefore(reaction, refNode.nextSibling);
+                                console.log('rendered ?');
+                                console.log(retour);
+                                console.log('answered');
+                            } else {
+                                console.log('a previous similar reaction');
+                                var counter = prevReact[0].getElementsByTagName('span')[0];
+                                console.log('counter says');
+                                console.log(counter.innerHTML);
+                                counter.innerHTML = parseInt(counter.innerHTML)+1;
+                            }
                     }
-                }    
+                }else{
+                    //sometimes reactions are retrieved earlier before the messages..in case the messages are edited
+                    //workaround: save non rendered reactions and trigger their rendering later
+                    //in case a msg is edited we loop through past rendered reactions and render the ones
+                    //corresponding to said edited message
+                    console.log("msg not here");
+                }
             },
 
             renderFileUploadProgresBar () {

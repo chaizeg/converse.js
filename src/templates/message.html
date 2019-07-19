@@ -35,6 +35,10 @@
                     <button class="chat-msg__action chat-msg__action-edit fa fa-pencil-alt" title="{{{o.__('Edit this message')}}}"></button>
                 </div>
             {[ } ]}
+            {[ if (o.type === 'headline' || o.sender !== 'me') { ]}
+            <div style="height: 36px; width: 20px;">
+            </div>
+        {[ } ]}
             <div class="chat-msg__actions">
                 <button class="chat-msg__action chat-msg__action-react far fa-smile" title="{{{o.__('React to this message')}}}"></button>
             </div>
@@ -42,5 +46,4 @@
 
         </div>
     </div>
-    <div class="chat-msg__reacts"></div>
 </div>

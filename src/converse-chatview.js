@@ -1099,8 +1099,7 @@ converse.plugins.add('converse-chatview', {
                     reactions.appendChild(doubtReaction);
 
                     refNode = (parentNode.getElementsByClassName('react')!= undefined && parentNode.getElementsByClassName('react')!= null 
-                                && parentNode.getElementsByClassName('react').length > 0) ? parentNode.getElementsByClassName('react')[0] : parentNode.getElementsByClassName("chat-msg__message")[0];
-                    console.log(refNode);
+                            && parentNode.getElementsByClassName('react').length > 0) ? parentNode.getElementsByClassName('react')[parentNode.getElementsByClassName('react').length -1] : parentNode.getElementsByClassName("chat-msg__message")[0];
                     parentNode.insertBefore(reactions, refNode.nextSibling);
                     parentNode.getElementsByClassName("chat-msg__reactions")[0].style.opacity = 1;          
                     parentNode.getElementsByClassName("chat-msg__reaction")[0].style.cursor = 'pointer';          
@@ -1124,11 +1123,14 @@ converse.plugins.add('converse-chatview', {
                                 curr.parentNode.removeChild(curr);
                             }
                     }
-                    parentNode.getElementsByClassName("chat-msg__reaction")[0].style.cursor = 'default';          
-                    parentNode.getElementsByClassName("chat-msg__reaction")[1].style.cursor = 'default';          
-                    parentNode.getElementsByClassName("chat-msg__reaction")[2].style.cursor = 'default';          
-                    parentNode.getElementsByClassName("chat-msg__reaction")[3].style.cursor = 'default';          
-                    parentNode.getElementsByClassName("chat-msg__reaction")[4].style.cursor = 'default';  
+                    if(parentNode.getElementsByClassName("chat-msg__reaction") != undefined && parentNode.getElementsByClassName("chat-msg__reaction") !=null
+                        && parentNode.getElementsByClassName("chat-msg__reaction").length >= 5){
+                            parentNode.getElementsByClassName("chat-msg__reaction")[0].style.cursor = 'default';          
+                            parentNode.getElementsByClassName("chat-msg__reaction")[1].style.cursor = 'default';          
+                            parentNode.getElementsByClassName("chat-msg__reaction")[2].style.cursor = 'default';          
+                            parentNode.getElementsByClassName("chat-msg__reaction")[3].style.cursor = 'default';          
+                            parentNode.getElementsByClassName("chat-msg__reaction")[4].style.cursor = 'default';          
+                        }
                   }
             },  
             
@@ -1143,6 +1145,7 @@ converse.plugins.add('converse-chatview', {
                 var message = u.ancestor(ev.target, '.chat-msg');
                 extraAttrs.reaction = reaction.innerHTML;
                 extraAttrs.reactsTo = message.getAttribute('data-msgid');
+                console.log('im sending the reaction');
                 this.model.sendMessage(reaction.innerHTML, null, extraAttrs);
                 this.model.reactionInProgress = false;
                 var reactions = u.ancestor(ev.target, '.chat-msg__reactions');

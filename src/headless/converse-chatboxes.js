@@ -737,7 +737,11 @@ converse.plugins.add('converse-chatboxes', {
             sendMessage (text, spoiler_hint, extraAttrs) {
                 var argReaction = null;
                 if(extraAttrs && extraAttrs.reactsTo){
+                    console.log('ya une reaction');
+                    console.log(text);
                     argReaction = extraAttrs.reactsTo;
+                    console.log(argReaction);
+                    console.log('there it was');
                 }
                 const attrs = this.getOutgoingMessageAttributes(text, spoiler_hint, argReaction);
                 let message = this.messages.findWhere('correcting')
