@@ -86,6 +86,7 @@ converse.plugins.add('converse-mam', {
             },
 
             async fetchArchivedMessages (options) {
+                console.log('fetching');
                 if (this.disable_mam) {
                     return;
                 }
@@ -116,6 +117,8 @@ converse.plugins.add('converse-mam', {
                     _converse.log(e, Strophe.LogLevel.ERROR);
                 }
                 if (result.messages) {
+                    console.log('i fetched this out :D');
+                    console.log(result);
                     result.messages.forEach(message_handler);
                 }
             },
