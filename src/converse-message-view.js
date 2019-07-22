@@ -197,6 +197,8 @@ converse.plugins.add('converse-message-view', {
                 if (!_.isNil(this.el.parentElement)) {
                     this.el.parentElement.replaceChild(msg, this.el);
                 }
+                console.log('replacing element with');
+                console.log(msg);
                 this.setElement(msg);
                 return this.el;
             },
@@ -207,13 +209,14 @@ converse.plugins.add('converse-message-view', {
                 const role = this.model.vcard ? this.model.vcard.get('role') : null;
                 const roles = role ? role.split(',') : [];
                 if(this.model.get('reactsTo')){
-                    // this.savedReactions.push(this.model);
                     console.log('reaction being rendered');
                     console.log(this.model);
                     this.renderReaction();
                     console.log('done rendering reaction');
                     return;
                  }
+                 console.log('rendered chat msg');
+                 console.log(this.model);
                 const msg = u.stringToElement(tpl_message(
                     Object.assign(
                         this.model.toJSON(), {
