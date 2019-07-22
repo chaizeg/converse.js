@@ -699,6 +699,8 @@ converse.plugins.add('converse-chatboxes', {
             },
 
             getOutgoingMessageAttributes (text, spoiler_hint, parentMsg) {
+                console.log('recovered msg');
+                console.log(text);
                 const is_spoiler = this.get('composing_spoiler');
                 const origin_id = _converse.connection.getUniqueId();
                 return {
@@ -911,6 +913,7 @@ converse.plugins.add('converse-chatboxes', {
              *  message stanza, if it was contained, otherwise it's the message stanza itself.
              */
             getMessageAttributesFromStanza (stanza, original_stanza) {
+                console.log(stanza);
                 const spoiler = sizzle(`spoiler[xmlns="${Strophe.NS.SPOILER}"]`, original_stanza).pop();
                 const delay = sizzle(`delay[xmlns="${Strophe.NS.DELAY}"]`, original_stanza).pop();
                 const text = this.getMessageBody(stanza) || undefined;

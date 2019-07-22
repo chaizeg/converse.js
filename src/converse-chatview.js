@@ -1099,14 +1099,14 @@ converse.plugins.add('converse-chatview', {
                     reactions.appendChild(doubtReaction);
 
                     refNode = (parentNode.getElementsByClassName('react')!= undefined && parentNode.getElementsByClassName('react')!= null 
-                            && parentNode.getElementsByClassName('react').length > 0) ? parentNode.getElementsByClassName('react')[parentNode.getElementsByClassName('react').length -1] : parentNode.getElementsByClassName("chat-msg__message")[0];
+                            && parentNode.getElementsByClassName('react').length > 0) ? 
+                            parentNode.getElementsByClassName('react')[parentNode.getElementsByClassName('react').length -1] 
+                            : parentNode.getElementsByClassName("chat-msg__message")[0];
                     parentNode.insertBefore(reactions, refNode.nextSibling);
-                    parentNode.getElementsByClassName("chat-msg__reactions")[0].style.opacity = 1;          
-                    parentNode.getElementsByClassName("chat-msg__reaction")[0].style.cursor = 'pointer';          
-                    parentNode.getElementsByClassName("chat-msg__reaction")[1].style.cursor = 'pointer';          
-                    parentNode.getElementsByClassName("chat-msg__reaction")[2].style.cursor = 'pointer';          
-                    parentNode.getElementsByClassName("chat-msg__reaction")[3].style.cursor = 'pointer';          
-                    parentNode.getElementsByClassName("chat-msg__reaction")[4].style.cursor = 'pointer';          
+                    parentNode.getElementsByClassName("chat-msg__reactions")[0].style.opacity = 1;    
+                    for(var i = 0; i < 5; i++){
+                        parentNode.getElementsByClassName("chat-msg__reaction")[i].style.cursor = 'pointer';          
+                    }              
                 }
                 else{
                     this.model.reactionInProgress = false;
@@ -1137,6 +1137,7 @@ converse.plugins.add('converse-chatview', {
             onReactionClicked(ev){
                 ev.preventDefault();
                 var reaction = u.ancestor(ev.target, '.chat-msg__reaction');
+                console.log(reaction);
                 const parentNode = u.ancestor(ev.target, '.chat-msg__body');
                 if(parentNode.getElementsByClassName("chat-msg__reactions")[0].style.opacity == 0){
                     return;  
