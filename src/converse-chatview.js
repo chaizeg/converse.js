@@ -1128,69 +1128,7 @@ converse.plugins.add('converse-chatview', {
                 parentNode.getElementsByClassName("chat-msg__reactions")[0].style.opacity = 0;     
 
             },
-            // dw_getScrollOffsets() {
-            //     var doc = document, w = window;
-            //     var x, y, docEl;
-                
-            //     if ( typeof w.pageYOffset === 'number' ) {
-            //         x = w.pageXOffset;
-            //         y = w.pageYOffset;
-            //     } else {
-            //         docEl = (doc.compatMode && doc.compatMode === 'CSS1Compat')?
-            //                 doc.documentElement: doc.body;
-            //         x = docEl.scrollLeft;
-            //         y = docEl.scrollTop;
-            //     }
-            //     return {x:x, y:y};
-            // },
 
-            // dw_getPageOffsets(el) {
-            //     var sOff = this.dw_getScrollOffsets(), left = 0, top = 0, props;
-                
-            //     if ( el.getBoundingClientRect ) {
-            //         props = el.getBoundingClientRect();
-            //         left = props.left + sOff.x;
-            //         top = props.top + sOff.y;
-            //     } else { // for older browsers
-            //         do {
-            //             left += el.offsetLeft;
-            //             top += el.offsetTop;
-            //         } while ( (el = el.offsetParent) );
-            //     }
-            //     return { x: Math.round(left), y: Math.round(top) };
-            // },
-            // getPositionXY(element) { 
-            //     var rect = element.getBoundingClientRect(); 
-            //     console.log('X: ' + rect.x + ', ' + 'Y: ' + rect.y); 
-            //     return rect;
-            // },
-
-            // createSVG(par) {
-            //     var svg = document.getElementById("svg-canvas");
-            //     if (null === svg) {
-            //       svg = document.createElementNS("http://www.w3.org/2000/svg", 
-            //                                      "svg");
-            //       svg.setAttribute('id', 'svg-canvas');
-            //       svg.setAttribute('style', 'position:absolute;top:0px;left:0px');
-            //       svg.setAttribute('width', document.body.clientWidth);
-            //       svg.setAttribute('height', document.body.clientHeight);
-            //       svg.setAttributeNS("http://www.w3.org/2000/xmlns/", 
-            //                          "xmlns:xlink", 
-            //                          "http://www.w3.org/1999/xlink");
-            //       par.appendChild(svg);
-            //     }
-            //     return svg;
-            // },
-
-            // drawCircle(x, y, radius, color, par) {
-            //     var svg = this.createSVG(par);
-            //         var shape = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            //     shape.setAttributeNS(null, "cx", x);
-            //     shape.setAttributeNS(null, "cy", y);
-            //     shape.setAttributeNS(null, "r",  radius);
-            //     shape.setAttributeNS(null, "fill", color);
-            //     svg.appendChild(shape);
-            // },
             highlightParents(ev) {
                 ev.preventDefault();
                 const message_el = u.ancestor(ev.target, '.chat-msg');
@@ -1224,77 +1162,8 @@ converse.plugins.add('converse-chatview', {
                     childSpace.childNodes[1].style.opacity = 1;
                   }
                 }
-
-                var div1 = $('[data-id="'+idParent+'"] > .fa-caret-down');
-                var div2 =  $('[data-id="'+currentId+'"] > .fa-level-up-alt');                
-                if(div1){
-                    var x1 = div1.position().left;
-                    var y1 = div1.position().top;
-                    console.log('setting style ');
-                    document.querySelectorAll('.discussionTree')[0].style.setProperty("--top-current", (y1+11)+"px");
-                    document.querySelectorAll('.discussionTree')[0].style.setProperty("--left-current", (x1+8)+"px");
-                    var x2 = div2.position().left;
-                    var y2 = div2.position().top;
-                    //probably a relative position issue..
-                    console.log(div2.position());
-                    document.querySelectorAll('.discussionTree')[0].style.setProperty("--bottom-current", (y2)+"px");
-                    console.log(document.querySelectorAll('.discussionTree')[0].style.getPropertyValue("--top-current"));
-                    console.log(document.querySelectorAll('.discussionTree')[0].style.getPropertyValue("--left-current"));
-                    console.log(document.querySelectorAll('.discussionTree')[0].style.getPropertyValue("--bottom-current"));
-                }
-                for(i = 0; i < kids.length; i++ ){
-                    childId = kids[i].getAttribute('data-msgid');
-                    childSpace = document.querySelectorAll(`[data-id="${childId}"`) ? document.querySelectorAll(`[data-id="${childId}"`)[2] : null;
-                    var childElement = $('[data-id="'+childId+'"] > .fa-caret-right');
-                    // console.log(childElement.position());
-                }
-
-      
-                //add line between parent and current messages
-                // var line = $('#lineParent');
-                // var div1 = $('[data-id="'+idParent+'"] > .fa-caret-down');
-                // console.log('parent');
-                // console.log(div1);
-                // var div2 =  $('[data-id="'+currentId+'"] > .fa-caret-down');
-                // console.log('current');
-                // console.log(div2);
-                // console.log(div1.position());
-                // if(div1 && div1.position() && div2 && div2.position()){
-                //     // var x1 = (this.getOffset(div1).left+window.pageXOffset)/2;
-                //     // var y1 = (this.getOffset(div1).top +window.pageYOffset)/2;
-                //     // var x2 = (this.getOffset(div2).left+window.pageXOffset)/2;
-                //     // var y2 = (this.getOffset(div2).top+window.pageYOffset) /2;
-                //     console.log('coordinates'); // console.log(this.getOffset(div1));
-                //     // console.log(this.getOffset(div2));
             
-                //      var x1 = div1.position().left;
-                //     var x2 = div2.position().left;
-                //     var y1 = div1.position().top;
-                //     var y2 = div2.position().top-50;
-                //     var el = div1;
-                    // console.log(x1);
-                    // console.log(y1);
-                    // console.log(x2);
-                    // console.log(y2);
-                    // console.log(- div1.scrollLeft+el.offsetLeft  + el.clientLeft);
-                    // el = div2;
-                    // console.log(-div2.scrollTop+el.offsetLeft  + el.clientLeft);
-                    // var lineParent = document.getElementById("svgParent");
-                    // var chatContent = document.getElementsByClassName('chat-content')[0];
-                    // var height = $(".chat-content").height() ;
-                    // var width = $(".chat-content").width();
-                    
-                    // var hgt = chatContent.offsetHeight;
-                    // var wdt = chatContent.offsetWidth;
-                    // lineParent.setAttribute("height", height);
-                    // lineParent.setAttribute("width", width); 
-                    
-                    // lineParent.innerHTML ='<path d="M 80,80 v-100 fill="yellow" stroke="blue" stroke-width="3" />';
-                    // lineParent.innerHTML = '<path d="M' + x1 + ',' + y1 + ' v-' + y2 + '" fill="yellow" stroke="blue" stroke-width="3" />';
-                    // console.log(lineParent.innerHTML);
-                    // console.log(lineParent);
-                }
-              ,
+            },
 
 
             dehighlightParents(ev) {
@@ -1327,8 +1196,6 @@ converse.plugins.add('converse-chatview', {
                         childSpace.childNodes[1].style.opacity = 0;
                     }
                 }
-                // var lineParent = document.getElementById("svgParent");
-                // lineParent.innerHTML ='';
   
             },
             //done adding
