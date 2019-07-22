@@ -332,15 +332,25 @@ converse.plugins.add('converse-message-view', {
                                 var reaction = document.createElement('div');
                                 reaction.id = this.model.get('message');
                                 reaction.className = "react";
-                                reaction.setAttribute('data-reactionid', this.model.get('msgid'));
+                                if(reaction.getAttribute('data-reactionid') == null || reaction.getAttribute('data-reactionid') == undefined){
+                                    reaction.setAttribute('data-reactionid', this.model.get('msgid'));
+                                }
+                                else{
+                                    reaction.setAttribute('data-reactionid', reaction.getAttribute('data-reactionid')+' '+this.model.get('msgid'));
+                                }
                                 reaction.innerHTML = this.model.get('message') +" +";
                                 var counter = document.createElement('span');
+                                counter.classList.add(this.model.get('msgid'));
                                 counter.innerHTML = '1';
                                 reaction.appendChild(counter);
                                 var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
                                 body[0].insertBefore(reaction, refNode.nextSibling);
                             } else {
                                 var counter = prevReact[0].getElementsByTagName('span')[0];
+                                if(counter.classList.contains(this.model.get('msgid'))){
+                                    return; //reaction already rendered
+                                }
+                                counter.classList.add(this.model.get('msgid'));
                                 counter.innerHTML = parseInt(counter.innerHTML)+1;
                             }
                             return;               
@@ -355,7 +365,7 @@ converse.plugins.add('converse-message-view', {
                 }
                 var exists = false;
                 for(var i = 0; i < this.savedReactions.length; i++){
-                    if(this.savedReactions[i].get('msgid')==this.model.get('msgid')){
+                    if(this.savedReactions[i].get('msgid')==this.model.get('msg id')){
                         exists = true;
                         break;
                     }
@@ -375,17 +385,22 @@ converse.plugins.add('converse-message-view', {
                                 reaction.setAttribute('data-reactionid', this.model.get('msgid'));
                                 reaction.innerHTML = this.model.get('message') +" +";
                                 var counter = document.createElement('span');
+                                counter.classList.add(this.model.get('msgid'));
                                 counter.innerHTML = '1';
                                 reaction.appendChild(counter);
                                 var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
                                 body[0].insertBefore(reaction, refNode.nextSibling);
                             } else {
                                 var counter = prevReact[0].getElementsByTagName('span')[0];
+                                if(counter.classList.contains(this.model.get('msgid'))){
+                                    return;
+                                }
+                                counter.classList.add(this.model.get('msgid'));
                                 counter.innerHTML = parseInt(counter.innerHTML)+1;
                             }
                     }
                 }else{
-                    return; //message to which we react doesn't exist on document
+                    return; //message to which the reaction is destined doesn't exist on document
                 }
             },
 

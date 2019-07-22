@@ -485,9 +485,7 @@ converse.plugins.add('converse-chatboxes', {
              * @param { XMLElement } stanza
              */
             getReactedToId (stanza) {
-                console.log('retrieving reacted to id');
                 const el = sizzle(`reactions[xmlns="${Strophe.NS.REACTION}"]`, stanza).pop();
-                console.log(el.getAttribute('id'));
                 if (el) {
                     return el.getAttribute('id');
                 }
@@ -956,7 +954,7 @@ converse.plugins.add('converse-chatboxes', {
                     'is_spoiler': !_.isNil(spoiler),
                     'is_single_emoji': text ? u.isSingleEmoji(text) : false,
                     'message': text,
-                    'reactsTo': this.getReactedToId(stanza) || undefined,
+                    'reactsTo': this.getReactedToId(stanza)? this.getReactedToId(stanza) : undefined,
                     'msgid': msgid,
                     'references': this.getReferencesFromStanza(stanza),
                     'subject': _.propertyOf(stanza.querySelector('subject'))('textContent'),
@@ -994,6 +992,8 @@ converse.plugins.add('converse-chatboxes', {
                 attrs['id'] = attrs['origin_id'] ||
                     attrs[`stanza_id ${attrs.from}`] ||
                     _converse.connection.getUniqueId();
+                    // console.log('got attributes')
+                
                 return attrs;
             },
 
@@ -1191,7 +1191,7 @@ converse.plugins.add('converse-chatboxes', {
                             !chatbox.handleReceipt (stanza, from_jid, is_carbon, is_me, is_mam) &&
                             !chatbox.handleChatMarker(stanza, from_jid, is_carbon, is_roster_contact, is_mam)) {
 
-                        console.log('passed here lol');
+                        // console.log('passed here lol');
                         const attrs = await chatbox.getMessageAttributesFromStanza(stanza, original_stanza);
                         if (attrs['chat_state'] || !u.isEmptyMessage(attrs)) {
                             const msg = chatbox.correctMessage(attrs) || chatbox.messages.create(attrs);
