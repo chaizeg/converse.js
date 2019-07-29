@@ -663,10 +663,6 @@ converse.plugins.add('converse-chatboxes', {
                     console.log('no reactions ');
                     console.log(stanza);
                 }
-                else{
-                    console.log('with reactions ');
-                    console.log(stanza);
-                }
 
                 if (message.get('type') === 'chat') {
                     stanza.c('request', {'xmlns': Strophe.NS.RECEIPTS}).root();
@@ -707,6 +703,7 @@ converse.plugins.add('converse-chatboxes', {
                 if(message.get('reactsTo')){
                     stanza.c('reactions', {'id': message.get('reactsTo'), 'xmlns': Strophe.NS.REACTION}).c('reaction').t(message.get('message')).root();
                 }
+                console.log(stanza);
                 return stanza;
             },
 

@@ -91,6 +91,7 @@ converse.plugins.add('converse-message-view', {
                     // If the model gets destroyed in the meantime,
                     // it no longer has a collection
                     if (this.model.collection) {
+                        console.log('msg rendered');
                         this.render();
                     }
                 }, 50);
@@ -196,6 +197,7 @@ converse.plugins.add('converse-message-view', {
                 const role = this.model.vcard ? this.model.vcard.get('role') : null;
                 const roles = role ? role.split(',') : [];
                 if(this.model.get('reactsTo')){
+                    console.log('render reaction');
                     this.renderReaction();
                     return;
                  }
@@ -244,6 +246,7 @@ converse.plugins.add('converse-message-view', {
                 }
                 //re-rendering reactions 
                 var savedId = this.model.get('msgid');
+                console.log('re-rendering reactions');
                 if(this.savedReactions.length > 0)
                 {
                     var savedLength = this.savedReactions.length;
@@ -319,41 +322,99 @@ converse.plugins.add('converse-message-view', {
 
             renderReaction(msg){
 
+                console.log('reaction :');
                 var message = document.querySelectorAll(`[data-msgid="${this.model.get('reactsTo')}"`)? 
                             document.querySelectorAll(`[data-msgid="${this.model.get('reactsTo')}"`): null ;
 
+                
                 //reaction is added to independent div 'msg'
                 if(msg){    
+                    if(this.savedReactions.indexOf(msg) != -1 && (this.savedReactions[this.savedReactions.indexOf(msg)].get('rendered')) 
+                    || this.savedReactions[this.savedReactions.indexOf(msg)].get('removed')){
+                        console.log('removed or rendered');
+                        return;
+                    }
                     var body = msg.querySelectorAll('.chat-msg__body');
                     if(body != null && body != undefined && body.length > 0){
-                            var prevReact =  body[0].querySelectorAll('#'+this.model.get('message'));
-                            if(prevReact == null || prevReact == undefined || prevReact.length == 0)
-                            {
-                                var reaction = document.createElement('div');
-                                reaction.id = this.model.get('message');
-                                reaction.className = "react";
-                                if(reaction.getAttribute('data-reactionid') == null || reaction.getAttribute('data-reactionid') == undefined){
-                                    reaction.setAttribute('data-reactionid', this.model.get('msgid'));
+                        var allReacts = body[0].querySelectorAll('.react');
+                        console.log(allReacts);
+                        for(var i=0; i < allReacts.length; i++){
+                            console.log(allReacts[i]);
+                            var userReacts = allReacts[i].getElementsByTagName('span')[0];
+                            if(userReacts.getAttribute('data-reactusers').includes(this.model.get('from'))){
+                                //decrease and if 0 delete
+                                userReacts.setAttribute('data-reactusers', userReacts.getAttribute('data-reactusers').replace(this.model.get('from'), ''));
+                                //decrease by 1 
+                                if(userReacts.innerHTML == 1){
+                                    //div to be deleted
+                                    allReacts[i].parentNode.removeChild(allReacts[i]);
+                                    console.log('div msg new deleted bc no reaction s supoosedtobe there' );
+                                    //add removed tag in savedreaction
+
                                 }
                                 else{
-                                    reaction.setAttribute('data-reactionid', reaction.getAttribute('data-reactionid')+' '+this.model.get('msgid'));
+                                    userReacts.innerHTML = parseInt(userReacts.innerHTML) - 1;
+                                    console.log('decreased new');
+                                    //add removed tag in savedreaction
                                 }
-                                reaction.innerHTML = this.model.get('message') +" +";
-                                var counter = document.createElement('span');
-                                counter.classList.add(this.model.get('msgid'));
-                                counter.innerHTML = '1';
-                                reaction.appendChild(counter);
-                                var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
-                                body[0].insertBefore(reaction, refNode.nextSibling);
-                            } else {
-                                var counter = prevReact[0].getElementsByTagName('span')[0];
-                                if(counter.classList.contains(this.model.get('msgid'))){
-                                    return; //reaction already rendered
-                                }
-                                counter.classList.add(this.model.get('msgid'));
-                                counter.innerHTML = parseInt(counter.innerHTML)+1;
                             }
-                            return;               
+                        }
+                        var prevReact =  body[0].querySelectorAll('#'+this.model.get('message'));
+                        if(prevReact == null || prevReact == undefined || prevReact.length == 0)
+                        {
+                            var reaction = document.createElement('div');
+                            reaction.id = this.model.get('message');
+                            reaction.className = "react";
+                            console.log('no prior similar reaction');
+                            if(reaction.getAttribute('data-reactionid') == null || reaction.getAttribute('data-reactionid') == undefined){
+                                reaction.setAttribute('data-reactionid', this.model.get('msgid'));
+                            }
+                            else{
+                                reaction.setAttribute('data-reactionid', reaction.getAttribute('data-reactionid')+' '+this.model.get('msgid'));
+                            }
+                            reaction.innerHTML = this.model.get('message') +" +";
+                            var counter = document.createElement('span');
+                            counter.classList.add(this.model.get('msgid'));
+                            counter.setAttribute('data-reactusers', this.model.get('from'));                                    
+                            counter.innerHTML = '1';
+                            reaction.appendChild(counter);
+                            var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
+                            body[0].insertBefore(reaction, refNode.nextSibling);
+                        } else {
+                            console.log('prior similar reaction');
+                            var counter = prevReact[0].getElementsByTagName('span')[0];
+                            if(counter.getAttribute('data-reactusers').includes(this.model.get('from'))){
+                                //decrease &erase reaction, erase from savedReactions
+                                if(parseInt(counter.innerHTML) == 1){
+                                    console.log('deleted');                                    
+                                    prevReact[0].parentNode.removeChild(prevReact[0]);
+                                }
+                                else{
+                                    console.log('decreased w saaaafi');
+                                    counter.innerHTML = parseInt(counter.innerHTML)-1;                                    
+                                }
+                                counter.setAttribute('data-reactusers', counter.getAttribute('data-reactusers').replace(this.model.get('from'), ''));
+                                var indexMsg = this.savedReactions.indexOf(msg);
+                                this.savedReactions[indexMsg].save({
+                                    'removed': true
+                                });
+                                return;
+                            }
+                            if(counter.classList.contains(this.model.get('msgid'))){
+                                console.log('noooppeee');
+                                return; //reaction already rendered
+                            }
+                            counter.classList.add(this.model.get('msgid'));
+                            // counter.setAttribute('data-reactusers', this.model.get('from'));                                                                
+                            if(counter.getAttribute('data-reactusers') == null || counter.getAttribute('data-reactusers') == undefined){
+                                counter.setAttribute('data-reactusers', this.model.get('from'));
+                            }
+                            else{
+                                counter.setAttribute('data-reactusers', counter.getAttribute('data-reactusers')+' '+this.model.get('from'));
+                            }
+                            counter.innerHTML = parseInt(counter.innerHTML)+1;
+                        }
+                        return;               
                     }
                 }
 
@@ -361,43 +422,172 @@ converse.plugins.add('converse-message-view', {
                 if(document.querySelectorAll(`[data-reactionid="${this.model.get('msgid')}"`)!= null 
                     && document.querySelectorAll(`[data-reactionid="${this.model.get('msgid')}"`)!= undefined
                      && document.querySelectorAll(`[data-reactionid="${this.model.get('msgid')}"`).length > 0){
+                    console.log('no duplicates');
                     return; //reaction aleady rendered : avoiding duplicates
                 }
+
                 var exists = false;
                 for(var i = 0; i < this.savedReactions.length; i++){
-                    if(this.savedReactions[i].get('msgid')==this.model.get('msg id')){
+                    if(this.savedReactions[i].get('msgid')==this.model.get('msgid')){
                         exists = true;
                         break;
                     }
                 }
                 if(!exists){
+                    var toSave = this.model;
+                    toSave.save({
+                        'removed': false,
+                        'rendered': false
+                    })
                     this.savedReactions.push(this.model);
                 }
                 if(message != null && message != undefined && message.length > 0){
+                    if(this.savedReactions.indexOf(msg) != -1 && (this.savedReactions[this.savedReactions.indexOf(msg)].get('rendered')) 
+                    || this.savedReactions[this.savedReactions.indexOf(msg)].get('removed')){
+                        console.log('removed or rendered');
+                        return;
+                    }
                     var body = message[0].querySelectorAll('.chat-msg__body');
                     if(body != null && body != undefined && body.length > 0){
-                            var prevReact =  body[0].querySelectorAll('#'+this.model.get('message'));
-                            if(prevReact == null || prevReact == undefined || prevReact.length == 0)
-                            {
-                                var reaction = document.createElement('div');
-                                reaction.id = this.model.get('message');
-                                reaction.className = "react";
-                                reaction.setAttribute('data-reactionid', this.model.get('msgid'));
-                                reaction.innerHTML = this.model.get('message') +" +";
-                                var counter = document.createElement('span');
-                                counter.classList.add(this.model.get('msgid'));
-                                counter.innerHTML = '1';
-                                reaction.appendChild(counter);
-                                var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
-                                body[0].insertBefore(reaction, refNode.nextSibling);
-                            } else {
-                                var counter = prevReact[0].getElementsByTagName('span')[0];
-                                if(counter.classList.contains(this.model.get('msgid'))){
-                                    return;
+                        var prevReact =  body[0].querySelectorAll('#'+this.model.get('message'));
+                        if(prevReact == null || prevReact == undefined || prevReact.length == 0)
+                        {
+                            //check if there was a prior reaction
+                            var allReacts = body[0].querySelectorAll('.react');
+                            console.log(allReacts);
+                            for(var i=0; i < allReacts.length; i++){
+                                var savedData = {
+                                    'reaction': allReacts[i].id,
+                                    'from': this.model.get('from'),
+                                    'to': this.model.get('jid'),
+                                    'msg': this.model.get('reactsTo')
+                                };
+                                console.log(allReacts[i]);
+                                var userReacts = allReacts[i].getElementsByTagName('span')[0];
+                                if(userReacts.getAttribute('data-reactusers').includes(this.model.get('from'))){
+                                    //decrease and if 0 delete
+                                    userReacts.setAttribute('data-reactusers', userReacts.getAttribute('data-reactusers').replace(this.model.get('from'), ''));
+                                    //decrease by 1 
+                                    if(userReacts.innerHTML == 1){
+                                        //div to be deleted
+                                        allReacts[i].parentNode.removeChild(allReacts[i]);
+                                        console.log('div msg new deleted' );
+                                    }
+                                    else{
+                                        userReacts.innerHTML = parseInt(userReacts.innerHTML) - 1;
+                                        console.log('decreased now');
+                                    }
+                                    //delete from saved reactions
+                                    var indexMsg = [-1];
+                                    for(var i = 0; i < this.savedReactions.length; i++){
+                                        if(this.savedReactions[i].get('from')==savedData.from 
+                                        && this.savedReactions[i].get('message')==savedData.message
+                                        && this.savedReactions[i].get('jid')==savedData.to
+                                        && this.savedReactions[i].get('reactsTo')==savedData.reactsTo){
+                                            indexMsg.push(i);
+                                        }
+
+                                    }
+                                    for(var j = 0; j < indexMsg.length; j++){
+                                        if(indexMsg[j] != -1){
+                                            // this.savedReactions.splice(indexMsg[j], 1);
+                                            this.savedReactions[indexMsg[j]].save({
+                                                'removed': true
+                                            });
+                                        }
+                                    }
                                 }
-                                counter.classList.add(this.model.get('msgid'));
-                                counter.innerHTML = parseInt(counter.innerHTML)+1;
                             }
+                            console.log('no prior similar reaction');
+                            var reaction = document.createElement('div');
+                            reaction.id = this.model.get('message');
+                            reaction.className = "react";
+                            reaction.setAttribute('data-reactionid', this.model.get('msgid'));
+                            reaction.innerHTML = this.model.get('message') +" +";
+                            var counter = document.createElement('span');
+                            counter.classList.add(this.model.get('msgid'));
+                            counter.setAttribute('data-reactusers', this.model.get('from'));                                    
+                            counter.innerHTML = '1';
+                            reaction.appendChild(counter);
+                            var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
+                            body[0].insertBefore(reaction, refNode.nextSibling);
+                        } else {
+                            console.log('prior reaction');
+                            //check if there was a prior reaction
+                            var callQuits = false;
+                            var allReacts = body[0].querySelectorAll('.react');
+                            console.log(allReacts);
+                            for(var i=0; i < allReacts.length; i++){
+                                var savedData = {
+                                    'reaction': allReacts[i].id,
+                                    'from': this.model.get('from'),
+                                    'to': this.model.get('jid'),
+                                    'msg': this.model.get('reactsTo')
+                                };
+                                console.log(allReacts[i]);
+                                var userReacts = allReacts[i].getElementsByTagName('span')[0];
+                                if(userReacts.getAttribute('data-reactusers').includes(this.model.get('from'))){
+                                    if(allReacts[i].id == this.model.get('message'))
+                                    {
+                                        callQuits = true;
+                                    }
+                                    //decrease and if 0 delete
+                                    userReacts.setAttribute('data-reactusers', userReacts.getAttribute('data-reactusers').replace(this.model.get('from'), ''));
+                                    //decrease by 1 
+                                    if(userReacts.innerHTML == 1){
+                                        //div to be deleted
+                                        allReacts[i].parentNode.removeChild(allReacts[i]);
+                                        console.log('div msg new deleted bc no reaction s supoosedtobe there' );
+                                    }
+                                    else{
+                                        userReacts.innerHTML = parseInt(userReacts.innerHTML) - 1;
+                                        console.log('decreased new');
+                                    }
+                                    //delete from saved reactions
+                                    var indexMsg = [-1];
+                                    for(var i = 0; i < this.savedReactions.length; i++){
+                                        if(this.savedReactions[i].get('from')==savedData.from 
+                                        && this.savedReactions[i].get('message')==savedData.message
+                                        && this.savedReactions[i].get('jid')==savedData.to
+                                        && this.savedReactions[i].get('reactsTo')==savedData.reactsTo){
+                                            indexMsg.push(i);
+                                        }
+
+                                    }
+                                    for(var j = 0; j < indexMsg.length; j++){
+                                        if(indexMsg[j] != -1){
+                                            // this.savedReactions.splice(indexMsg[j], 1);
+                                            this.savedReactions[indexMsg].save({
+                                                'removed': true
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                            if(callQuits){
+                                console.log('removing reaction');
+                                return;
+                            }
+                            var counter = prevReact[0].getElementsByTagName('span')[0];
+                            if(counter.classList.contains(this.model.get('msgid'))){
+                                console.log('nopeee');
+                                return; //reaction already rendered
+                            }
+                            counter.classList.add(this.model.get('msgid'));
+                            if(counter.getAttribute('data-reactusers') == null || counter.getAttribute('data-reactusers') == undefined){
+                                counter.setAttribute('data-reactusers', this.model.get('from'));
+                            }
+                            else{
+                                counter.setAttribute('data-reactusers', counter.getAttribute('data-reactusers')+' '+this.model.get('from'));
+                            }
+                            // if(prevReact[0].getAttribute('data-reactionid') == null || prevReact[0].getAttribute('data-reactionid') == undefined){
+                            //     prevReact[0].setAttribute('data-reactionid', this.model.get('msgid'));
+                            // }
+                            // else{
+                            //     prevReact[0].setAttribute('data-reactionid', prevReact[0].getAttribute('data-reactionid')+' '+this.model.get('msgid'));
+                            // }
+                            counter.innerHTML = parseInt(counter.innerHTML)+1;
+                        }
                     }
                 }else{
                     return; //message to which the reaction is destined doesn't exist on document
