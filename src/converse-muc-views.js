@@ -448,6 +448,8 @@ converse.plugins.add('converse-muc-views', {
             events: {
                 'change input.fileupload': 'onFileSelection',
                 'click .chat-msg__action-edit': 'onMessageEditButtonClicked',
+                'click .chat-msg__action-react': 'onMessageReactButtonClicked',
+                'click .chat-msg__reaction': 'onReactionClicked',
                 'click .chatbox-navback': 'showControlBox',
                 'click .close-chatbox-button': 'close',
                 'click .configure-chatroom-button': 'getAndRenderConfigurationForm',

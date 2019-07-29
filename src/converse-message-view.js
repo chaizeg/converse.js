@@ -240,23 +240,29 @@ converse.plugins.add('converse-message-view', {
                         _.partial(u.addEmoji, _converse, _)
                     )(text);
                 }
+                console.log('of text : ');
+                console.log(text);
+                console.log(this.savedReactions);
                 const promise = u.renderImageURLs(_converse, msg_content);
                 if (this.model.get('type') !== 'headline') {
                     this.renderAvatar(msg);
                 }
                 //re-rendering reactions 
                 var savedId = this.model.get('msgid');
-                console.log('re-rendering reactions');
                 if(this.savedReactions.length > 0)
                 {
+                    console.log('re-rendering reactions');
                     var savedLength = this.savedReactions.length;
+                    console.log(this.savedReactions.length);
                     var currentThis = this.model;
-                    for(var i = 0; i < savedLength ; i++){
+                    for(var i = 0; i < this.savedReactions.length ; i++){
+                        console.log(this.model);
                         this.model = this.savedReactions[i];
                         if(this.model.get('reactsTo')==savedId){
                             this.renderReaction(msg);
                         }
                     }
+                    console.log('done');
                     this.model = currentThis;
                 }
                 await promise;
@@ -323,18 +329,20 @@ converse.plugins.add('converse-message-view', {
             renderReaction(msg){
 
                 console.log('reaction :');
+                console.log(this.model);
                 var message = document.querySelectorAll(`[data-msgid="${this.model.get('reactsTo')}"`)? 
                             document.querySelectorAll(`[data-msgid="${this.model.get('reactsTo')}"`): null ;
 
-                
-                //reaction is added to independent div 'msg'
-                if(msg){    
-                    if(this.savedReactions.indexOf(msg) != -1 && (this.savedReactions[this.savedReactions.indexOf(msg)].get('rendered')) 
-                    || this.savedReactions[this.savedReactions.indexOf(msg)].get('removed')){
-                        console.log('removed or rendered');
-                        return;
-                    }
+                console.log(message);
+                /*
+                1ST CASE : 
+                    div for message is created independently from document
+                    the div is to be added later into the document
+                */
+                if(msg){  
                     var body = msg.querySelectorAll('.chat-msg__body');
+                    var callQuits = false;
+                    //removing other reactions by same user
                     if(body != null && body != undefined && body.length > 0){
                         var allReacts = body[0].querySelectorAll('.react');
                         console.log(allReacts);
@@ -342,23 +350,34 @@ converse.plugins.add('converse-message-view', {
                             console.log(allReacts[i]);
                             var userReacts = allReacts[i].getElementsByTagName('span')[0];
                             if(userReacts.getAttribute('data-reactusers').includes(this.model.get('from'))){
-                                //decrease and if 0 delete
                                 userReacts.setAttribute('data-reactusers', userReacts.getAttribute('data-reactusers').replace(this.model.get('from'), ''));
-                                //decrease by 1 
                                 if(userReacts.innerHTML == 1){
-                                    //div to be deleted
                                     allReacts[i].parentNode.removeChild(allReacts[i]);
                                     console.log('div msg new deleted bc no reaction s supoosedtobe there' );
-                                    //add removed tag in savedreaction
-
                                 }
                                 else{
                                     userReacts.innerHTML = parseInt(userReacts.innerHTML) - 1;
                                     console.log('decreased new');
-                                    //add removed tag in savedreaction
                                 }
+                                if(allReacts[i].id == this.model.get('message')){
+                                    console.log('call quits');
+                                    callQuits = true;
+                                }
+                                this.savedReactions[this.savedReactions.indexOf(this.model)].save({
+                                    'removed': true
+                                });
                             }
                         }
+
+                        if(callQuits){
+                            console.log('do not rerender');
+                            this.savedReactions[this.savedReactions.indexOf(this.model)].save({
+                                'rendered': true
+                            });
+                            return;
+                        }
+
+                        //adding reaction 
                         var prevReact =  body[0].querySelectorAll('#'+this.model.get('message'));
                         if(prevReact == null || prevReact == undefined || prevReact.length == 0)
                         {
@@ -380,7 +399,13 @@ converse.plugins.add('converse-message-view', {
                             reaction.appendChild(counter);
                             var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
                             body[0].insertBefore(reaction, refNode.nextSibling);
-                        } else {
+                            this.savedReactions[this.savedReactions.indexOf(this.model)].save({
+                                'rendered': true
+                            });
+                            console.log('tots rendered');
+                        } 
+                        
+                        else {
                             console.log('prior similar reaction');
                             var counter = prevReact[0].getElementsByTagName('span')[0];
                             if(counter.getAttribute('data-reactusers').includes(this.model.get('from'))){
@@ -394,7 +419,7 @@ converse.plugins.add('converse-message-view', {
                                     counter.innerHTML = parseInt(counter.innerHTML)-1;                                    
                                 }
                                 counter.setAttribute('data-reactusers', counter.getAttribute('data-reactusers').replace(this.model.get('from'), ''));
-                                var indexMsg = this.savedReactions.indexOf(msg);
+                                var indexMsg = this.savedReactions.indexOf(this.model);
                                 this.savedReactions[indexMsg].save({
                                     'removed': true
                                 });
@@ -405,7 +430,6 @@ converse.plugins.add('converse-message-view', {
                                 return; //reaction already rendered
                             }
                             counter.classList.add(this.model.get('msgid'));
-                            // counter.setAttribute('data-reactusers', this.model.get('from'));                                                                
                             if(counter.getAttribute('data-reactusers') == null || counter.getAttribute('data-reactusers') == undefined){
                                 counter.setAttribute('data-reactusers', this.model.get('from'));
                             }
@@ -413,12 +437,20 @@ converse.plugins.add('converse-message-view', {
                                 counter.setAttribute('data-reactusers', counter.getAttribute('data-reactusers')+' '+this.model.get('from'));
                             }
                             counter.innerHTML = parseInt(counter.innerHTML)+1;
+                            this.savedReactions[this.savedReactions.indexOf(this.model)].save({
+                                'rendered': true
+                            });
+                            console.log('renderé');
                         }
                         return;               
                     }
                 }
 
-                //reaction is added to document directly
+                /*
+                2ND CASE : 
+                    div for message is added directly to document
+                */
+
                 if(document.querySelectorAll(`[data-reactionid="${this.model.get('msgid')}"`)!= null 
                     && document.querySelectorAll(`[data-reactionid="${this.model.get('msgid')}"`)!= undefined
                      && document.querySelectorAll(`[data-reactionid="${this.model.get('msgid')}"`).length > 0){
@@ -426,24 +458,36 @@ converse.plugins.add('converse-message-view', {
                     return; //reaction aleady rendered : avoiding duplicates
                 }
 
-                var exists = false;
+                var existingIndex = undefined;
                 for(var i = 0; i < this.savedReactions.length; i++){
                     if(this.savedReactions[i].get('msgid')==this.model.get('msgid')){
-                        exists = true;
+                        console.log('existsss');
+                        console.log(this.savedReactions[i]);
+                        existingIndex = i;
                         break;
                     }
                 }
-                if(!exists){
+                if(existingIndex == undefined){
                     var toSave = this.model;
                     toSave.save({
                         'removed': false,
                         'rendered': false
-                    })
-                    this.savedReactions.push(this.model);
+                    });
+                    console.log(new Array(this.savedReactions));
+                    this.savedReactions.push(toSave);
+                    console.log(new Array(this.savedReactions));
+                    existingIndex = this.savedReactions.indexOf(toSave);
                 }
+
+                console.log(existingIndex);
+                if(existingIndex != -1){
+                    console.log(this.savedReactions[existingIndex]);
+                }
+
                 if(message != null && message != undefined && message.length > 0){
-                    if(this.savedReactions.indexOf(msg) != -1 && (this.savedReactions[this.savedReactions.indexOf(msg)].get('rendered')) 
-                    || this.savedReactions[this.savedReactions.indexOf(msg)].get('removed')){
+                    if(existingIndex != undefined && existingIndex != -1 &&
+                    (this.savedReactions[existingIndex].get('rendered')
+                    || this.savedReactions[existingIndex].get('removed'))){
                         console.log('removed or rendered');
                         return;
                     }
@@ -465,11 +509,8 @@ converse.plugins.add('converse-message-view', {
                                 console.log(allReacts[i]);
                                 var userReacts = allReacts[i].getElementsByTagName('span')[0];
                                 if(userReacts.getAttribute('data-reactusers').includes(this.model.get('from'))){
-                                    //decrease and if 0 delete
                                     userReacts.setAttribute('data-reactusers', userReacts.getAttribute('data-reactusers').replace(this.model.get('from'), ''));
-                                    //decrease by 1 
                                     if(userReacts.innerHTML == 1){
-                                        //div to be deleted
                                         allReacts[i].parentNode.removeChild(allReacts[i]);
                                         console.log('div msg new deleted' );
                                     }
@@ -477,21 +518,12 @@ converse.plugins.add('converse-message-view', {
                                         userReacts.innerHTML = parseInt(userReacts.innerHTML) - 1;
                                         console.log('decreased now');
                                     }
-                                    //delete from saved reactions
-                                    var indexMsg = [-1];
                                     for(var i = 0; i < this.savedReactions.length; i++){
                                         if(this.savedReactions[i].get('from')==savedData.from 
                                         && this.savedReactions[i].get('message')==savedData.message
                                         && this.savedReactions[i].get('jid')==savedData.to
                                         && this.savedReactions[i].get('reactsTo')==savedData.reactsTo){
-                                            indexMsg.push(i);
-                                        }
-
-                                    }
-                                    for(var j = 0; j < indexMsg.length; j++){
-                                        if(indexMsg[j] != -1){
-                                            // this.savedReactions.splice(indexMsg[j], 1);
-                                            this.savedReactions[indexMsg[j]].save({
+                                            this.savedReactions[i].save({
                                                 'removed': true
                                             });
                                         }
@@ -511,6 +543,9 @@ converse.plugins.add('converse-message-view', {
                             reaction.appendChild(counter);
                             var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
                             body[0].insertBefore(reaction, refNode.nextSibling);
+                            this.savedReactions[this.savedReactions.indexOf(this.model)].save({
+                                'rendered': true
+                            });
                         } else {
                             console.log('prior reaction');
                             //check if there was a prior reaction
@@ -529,13 +564,13 @@ converse.plugins.add('converse-message-view', {
                                 if(userReacts.getAttribute('data-reactusers').includes(this.model.get('from'))){
                                     if(allReacts[i].id == this.model.get('message'))
                                     {
+                                        this.savedReactions[this.savedReactions.indexOf(this.model)].save({
+                                            'removed': true
+                                        });
                                         callQuits = true;
                                     }
-                                    //decrease and if 0 delete
                                     userReacts.setAttribute('data-reactusers', userReacts.getAttribute('data-reactusers').replace(this.model.get('from'), ''));
-                                    //decrease by 1 
                                     if(userReacts.innerHTML == 1){
-                                        //div to be deleted
                                         allReacts[i].parentNode.removeChild(allReacts[i]);
                                         console.log('div msg new deleted bc no reaction s supoosedtobe there' );
                                     }
@@ -543,28 +578,23 @@ converse.plugins.add('converse-message-view', {
                                         userReacts.innerHTML = parseInt(userReacts.innerHTML) - 1;
                                         console.log('decreased new');
                                     }
-                                    //delete from saved reactions
-                                    var indexMsg = [-1];
                                     for(var i = 0; i < this.savedReactions.length; i++){
                                         if(this.savedReactions[i].get('from')==savedData.from 
                                         && this.savedReactions[i].get('message')==savedData.message
                                         && this.savedReactions[i].get('jid')==savedData.to
                                         && this.savedReactions[i].get('reactsTo')==savedData.reactsTo){
-                                            indexMsg.push(i);
-                                        }
-
-                                    }
-                                    for(var j = 0; j < indexMsg.length; j++){
-                                        if(indexMsg[j] != -1){
-                                            // this.savedReactions.splice(indexMsg[j], 1);
-                                            this.savedReactions[indexMsg].save({
+                                            this.savedReactions[i].save({
                                                 'removed': true
                                             });
                                         }
+
                                     }
                                 }
                             }
                             if(callQuits){
+                                this.savedReactions[this.savedReactions.indexOf(this.model)].save({
+                                    'removed': true
+                                });
                                 console.log('removing reaction');
                                 return;
                             }
@@ -580,16 +610,15 @@ converse.plugins.add('converse-message-view', {
                             else{
                                 counter.setAttribute('data-reactusers', counter.getAttribute('data-reactusers')+' '+this.model.get('from'));
                             }
-                            // if(prevReact[0].getAttribute('data-reactionid') == null || prevReact[0].getAttribute('data-reactionid') == undefined){
-                            //     prevReact[0].setAttribute('data-reactionid', this.model.get('msgid'));
-                            // }
-                            // else{
-                            //     prevReact[0].setAttribute('data-reactionid', prevReact[0].getAttribute('data-reactionid')+' '+this.model.get('msgid'));
-                            // }
+                            console.log('regular');
                             counter.innerHTML = parseInt(counter.innerHTML)+1;
+                            this.savedReactions[this.savedReactions.indexOf(this.model)].save({
+                                'rendered': true
+                            });
                         }
                     }
                 }else{
+                    console.log('here :(');
                     return; //message to which the reaction is destined doesn't exist on document
                 }
             },
