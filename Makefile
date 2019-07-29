@@ -103,6 +103,10 @@ release:
 	make build
 	npm run pack
 
+.PHONY: postrelease
+postrelease:
+	$(SED) -i '/^_converse.VERSION_NAME =/s/=.*/= "v$(VERSION)dev";/' src/headless/converse-core.js
+
 ########################################################################
 ## Install dependencies
 
@@ -116,6 +120,7 @@ stamp-npm: $(LERNA) package.json package-lock.json src/headless/package.json
 .PHONY: clean
 clean:
 	npm run clean
+	rm -r lib bin include parts
 
 .PHONY: dev
 dev: stamp-npm
@@ -227,10 +232,12 @@ check: eslint dist/converse.js
 ## Documentation
 
 ./bin/activate:
-	virtualenv .
+	python3.7 -m venv .
 
 .installed.cfg: requirements.txt buildout.cfg
 	./bin/pip install -r requirements.txt
+	./bin/pip install --upgrade pip==19.2.1
+	./bin/pip install --upgrade setuptools==41.0.1
 	./bin/buildout -v
 
 docsdev: ./bin/activate .installed.cfg

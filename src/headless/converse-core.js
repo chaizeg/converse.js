@@ -94,15 +94,17 @@ const CORE_PLUGINS = [
 /**
  * A private, closured object containing the private api (via {@link _converse.api})
  * as well as private methods and internal data-structures.
- *
+ * @global
  * @namespace _converse
  */
+// XXX: Strictly speaking _converse is not a global, but we need to set it as
+// such to get JSDoc to create the correct document site strucure.
 const _converse = {
     'templates': {},
     'promises': {}
 }
 
-_converse.VERSION_NAME = 'v4.2.0';
+_converse.VERSION_NAME = "v5.0.0dev";
 
 Object.assign(_converse, Backbone.Events);
 
@@ -216,6 +218,7 @@ _converse.default_settings = {
     geouri_replacement: 'https://www.openstreetmap.org/?mlat=$1&mlon=$2#map=18/$1/$2',
     idle_presence_timeout: 300, // Seconds after which an idle presence is sent
     jid: undefined,
+    keepalive: true,
     locales_url: 'locale/{{{locale}}}/LC_MESSAGES/converse.json',
     locales: [
         'af', 'ar', 'bg', 'ca', 'cs', 'de', 'eo', 'es', 'eu', 'en', 'fr', 'gl',
@@ -288,7 +291,7 @@ Strophe.error = function (msg) { _converse.log(msg, Strophe.LogLevel.ERROR); };
  * @param { String } str - The string to translate
  */
 _converse.__ = function (str) {
-    if (_.isUndefined(i18n)) {
+    if (i18n === undefined) {
         return str;
     }
     return i18n.translate.apply(i18n, arguments);
@@ -420,6 +423,65 @@ function tearDown () {
 }
 
 
+async function attemptNonPreboundSession (credentials) {
+    if (_converse.authentication === _converse.LOGIN) {
+        if (credentials) {
+            connect(credentials);
+        } else if (_converse.credentials_url) {
+            // We give credentials_url preference, because
+            // _converse.connection.pass might be an expired token.
+            connect(await getLoginCredentials());
+        } else if (_converse.jid && (_converse.password || _converse.connection.pass)) {
+            connect();
+        } else if (!_converse.isTestEnv() && window.PasswordCredential) {
+            connect(await getLoginCredentialsFromBrowser());
+        } else {
+            throw new Error("attemptNonPreboundSession: Could not find any credentials to log you in with!");
+        }
+    } else if ([_converse.ANONYMOUS, _converse.EXTERNAL].includes(_converse.authentication)) {
+        connect();
+    }
+}
+
+
+function connect (credentials) {
+    if ([_converse.ANONYMOUS, _converse.EXTERNAL].includes(_converse.authentication)) {
+        if (!_converse.jid) {
+            throw new Error("Config Error: when using anonymous login " +
+                "you need to provide the server's domain via the 'jid' option. " +
+                "Either when calling converse.initialize, or when calling " +
+                "_converse.api.user.login.");
+        }
+        if (!_converse.connection.reconnecting) {
+            _converse.connection.reset();
+        }
+        _converse.connection.connect(
+            _converse.jid.toLowerCase(),
+            null,
+            _converse.onConnectStatusChanged,
+            BOSH_WAIT
+        );
+    } else if (_converse.authentication === _converse.LOGIN) {
+        const password = _.isNil(credentials)
+            ? _converse.connection.pass || _converse.password
+            : credentials.password;
+        if (!password) {
+            if (_converse.auto_login) {
+                throw new Error("autoLogin: If you use auto_login and "+
+                    "authentication='login' then you also need to provide a password.");
+            }
+            _converse.setDisconnectionCause(Strophe.Status.AUTHFAIL, undefined, true);
+            _converse.api.connection.disconnect();
+            return;
+        }
+        if (!_converse.connection.reconnecting) {
+            _converse.connection.reset();
+        }
+        _converse.connection.connect(_converse.jid, password, _converse.onConnectStatusChanged, BOSH_WAIT);
+    }
+}
+
+
 function reconnect () {
     _converse.log('RECONNECTING: the connection has dropped, attempting to reconnect.');
     _converse.setConnectionStatus(
@@ -436,14 +498,14 @@ function reconnect () {
 
     _converse.connection.reconnecting = true;
     tearDown();
-    _converse.api.user.login(null, null, true);
+    return _converse.api.user.login();
 }
 
 const debouncedReconnect = _.debounce(reconnect, 2000);
 
 
 function clearSession  () {
-    if (!_.isUndefined(_converse.session)) {
+    if (_converse.session !== undefined) {
         _converse.session.destroy();
         delete _converse.session;
     }
@@ -462,9 +524,11 @@ function clearSession  () {
 }
 
 
-_converse.initConnection = function () {
-    /* Creates a new Strophe.Connection instance if we don't already have one.
-     */
+/**
+ * Creates a new Strophe.Connection instance and if applicable, attempt to
+ * restore the BOSH session or if `auto_login` is true, attempt to log in.
+ */
+_converse.initConnection = async function () {
     if (!_converse.connection) {
         if (!_converse.bosh_service_url && ! _converse.websocket_url) {
             throw new Error("initConnection: you must supply a value for either the bosh_service_url or websocket_url or both.");
@@ -480,12 +544,15 @@ _converse.initConnection = function () {
                 Object.assign(
                     _converse.default_connection_options,
                     _converse.connection_options,
-                    {'keepalive': true}
+                    {'keepalive': _converse.keepalive}
                 )
             );
         } else {
             throw new Error("initConnection: this browser does not support "+
                             "websockets and bosh_service_url wasn't specified.");
+        }
+        if (_converse.auto_login || _converse.keepalive) {
+            await _converse.api.user.login();
         }
     }
     setUpXMLLogging();
@@ -555,6 +622,7 @@ async function onConnected (reconnecting) {
     /* Called as soon as a new connection has been established, either
      * by logging in or by attaching to an existing BOSH session.
      */
+    delete _converse.connection.reconnecting;
     _converse.connection.flush(); // Solves problem of returned PubSub BOSH response not received by browser
     await setUserJID(_converse.connection.jid);
     /**
@@ -585,11 +653,10 @@ function setUpXMLLogging () {
 }
 
 
-function finishInitialization () {
+async function finishInitialization () {
     initClientConfig();
     initPlugins();
-    _converse.initConnection();
-    _converse.api.user.login();
+    await _converse.initConnection();
     _converse.registerGlobalEventHandlers();
     if (!Backbone.history.started) {
         Backbone.history.start();
@@ -610,10 +677,11 @@ function fetchLoginCredentials (wait=0) {
             xhr.onload = () => {
                 if (xhr.status >= 200 && xhr.status < 400) {
                     const data = JSON.parse(xhr.responseText);
-                    setUserJID(data.jid);
-                    resolve({
-                        jid: data.jid,
-                        password: data.password
+                    setUserJID(data.jid).then(() => {
+                        resolve({
+                            jid: data.jid,
+                            password: data.password
+                        });
                     });
                 } else {
                     reject(new Error(`${xhr.status}: ${xhr.responseText}`));
@@ -642,6 +710,14 @@ async function getLoginCredentials () {
     return credentials;
 }
 
+async function getLoginCredentialsFromBrowser () {
+    const creds = await navigator.credentials.get({'password': true});
+    if (creds && creds.type == 'password' && u.isValidJID(creds.id)) {
+        await setUserJID(creds.id);
+        return {'jid': creds.id, 'password': creds.password};
+    }
+}
+
 
 function unregisterGlobalEventHandlers () {
     document.removeEventListener("visibilitychange", _converse.saveWindowState);
@@ -664,10 +740,10 @@ function cleanup () {
 
 
 _converse.initialize = async function (settings, callback) {
-    settings = !_.isUndefined(settings) ? settings : {};
+    settings = settings !== undefined ? settings : {};
     const init_promise = u.getResolveablePromise();
     PROMISES.forEach(addPromise);
-    if (!_.isUndefined(_converse.connection)) {
+    if (_converse.connection !== undefined) {
         cleanup();
     }
 
@@ -686,6 +762,8 @@ _converse.initialize = async function (settings, callback) {
     _.assignIn(this, this.default_settings);
     // Allow only whitelisted configuration attributes to be overwritten
     _.assignIn(this, _.pick(settings, Object.keys(this.default_settings)));
+    this.settings = {};
+    _.assignIn(this.settings, _.pick(settings, Object.keys(this.default_settings)));
 
     if (this.authentication === _converse.ANONYMOUS) {
         if (this.auto_login && !this.jid) {
@@ -704,7 +782,7 @@ _converse.initialize = async function (settings, callback) {
     });
 
     /* Localisation */
-    if (!_.isUndefined(i18n)) {
+    if (i18n !== undefined) {
         i18n.setLocales(settings.i18n, _converse);
     } else {
         _converse.locale = 'en';
@@ -885,16 +963,21 @@ _converse.initialize = async function (settings, callback) {
     this.onDisconnected = function () {
         const reason = _converse.disconnection_reason;
         if (_converse.disconnection_cause === Strophe.Status.AUTHFAIL) {
-            if (_converse.credentials_url && _converse.auto_reconnect) {
-                /* In this case, we reconnect, because we might be receiving
-                 * expirable tokens from the credentials_url.
+            if (_converse.auto_reconnect && (_converse.credentials_url || _converse.authentication === _converse.ANONYMOUS)) {
+                /**
+                 * If `credentials_url` is set, we reconnect, because we might
+                 * be receiving expirable tokens from the credentials_url.
+                 *
+                 * If `authentication` is anonymous, we reconnect because we
+                 * might have tried to attach with stale BOSH session tokens
+                 * or with a cached JID and password
                  */
                 return _converse.api.connection.reconnect();
             } else {
                 return _converse.finishDisconnection();
             }
         } else if (_converse.disconnection_cause === _converse.LOGOUT ||
-                (!_.isUndefined(reason) && reason === _.get(Strophe, 'ErrorCondition.NO_AUTH_MECH')) ||
+                (reason !== undefined && reason === _.get(Strophe, 'ErrorCondition.NO_AUTH_MECH')) ||
                 reason === "host-unknown" ||
                 reason === "remote-connection-failed" ||
                 !_converse.auto_reconnect) {
@@ -908,10 +991,10 @@ _converse.initialize = async function (settings, callback) {
         /* Used to keep track of why we got disconnected, so that we can
          * decide on what the next appropriate action is (in onDisconnected)
          */
-        if (_.isUndefined(cause)) {
+        if (cause === undefined) {
             delete _converse.disconnection_cause;
             delete _converse.disconnection_reason;
-        } else if (_.isUndefined(_converse.disconnection_cause) || override) {
+        } else if (_converse.disconnection_cause === undefined || override) {
             _converse.disconnection_cause = cause;
             _converse.disconnection_reason = reason;
         }
@@ -966,7 +1049,7 @@ _converse.initialize = async function (settings, callback) {
             if (message === "host-unknown" || message == "remote-connection-failed") {
                 feedback = __("Sorry, we could not connect to the XMPP host with domain: %1$s",
                     `\"${Strophe.getDomainFromJid(_converse.connection.jid)}\"`);
-            } else if (!_.isUndefined(message) && message === _.get(Strophe, 'ErrorCondition.NO_AUTH_MECH')) {
+            } else if (message !== undefined && message === _.get(Strophe, 'ErrorCondition.NO_AUTH_MECH')) {
                 feedback = __("The XMPP server did not offer a supported authentication mechanism");
             }
             _converse.setConnectionStatus(status, feedback);
@@ -1004,7 +1087,7 @@ _converse.initialize = async function (settings, callback) {
     this.initStatus = (reconnecting) => {
         // If there's no xmppstatus obj, then we were never connected to
         // begin with, so we set reconnecting to false.
-        reconnecting = _.isUndefined(_converse.xmppstatus) ? false : reconnecting;
+        reconnecting = _converse.xmppstatus === undefined ? false : reconnecting;
         if (reconnecting) {
             _converse.onStatusInitialized(reconnecting);
         } else {
@@ -1213,77 +1296,6 @@ _converse.initialize = async function (settings, callback) {
         }
     });
 
-
-    this.attemptNonPreboundSession = async function (credentials, reconnecting) {
-        if (credentials) {
-            this.autoLogin(credentials);
-        } else if (this.auto_login) {
-            if (this.credentials_url && _converse.authentication === _converse.LOGIN) {
-                const data = await getLoginCredentials();
-                this.autoLogin(data);
-            } else if (!this.jid) {
-                throw new Error(
-                    "attemptNonPreboundSession: If you use auto_login, "+
-                    "you also need to give either a jid value (and if "+
-                    "applicable a password) or you need to pass in a URL "+
-                    "from where the username and password can be fetched "+
-                    "(via credentials_url)."
-                );
-            } else {
-                // Could be ANONYMOUS or EXTERNAL or manual passing in of JID and password
-                this.autoLogin();
-            }
-        } else if (reconnecting) {
-            this.autoLogin();
-        } else if (!_converse.isTestEnv() && window.PasswordCredential) {
-            const creds = await navigator.credentials.get({'password': true});
-            if (creds && creds.type == 'password' && u.isValidJID(creds.id)) {
-                await setUserJID(creds.id);
-                this.autoLogin({'jid': creds.id, 'password': creds.password});
-            }
-        }
-    };
-
-    this.autoLogin = function (credentials) {
-        if (
-            this.authentication === _converse.ANONYMOUS ||
-            this.authentication === _converse.EXTERNAL
-        ) {
-            if (!this.jid) {
-                throw new Error("Config Error: when using anonymous login " +
-                    "you need to provide the server's domain via the 'jid' option. " +
-                    "Either when calling converse.initialize, or when calling " +
-                    "_converse.api.user.login.");
-            }
-            if (!this.connection.reconnecting) {
-                this.connection.reset();
-            }
-            this.connection.connect(
-                this.jid.toLowerCase(),
-                null,
-                this.onConnectStatusChanged,
-                BOSH_WAIT
-            );
-        } else if (this.authentication === _converse.LOGIN) {
-            const password = _.isNil(credentials)
-                ? _converse.connection.pass || this.password
-                : credentials.password;
-            if (!password) {
-                if (this.auto_login) {
-                    throw new Error("autoLogin: If you use auto_login and "+
-                        "authentication='login' then you also need to provide a password.");
-                }
-                _converse.setDisconnectionCause(Strophe.Status.AUTHFAIL, undefined, true);
-                _converse.api.connection.disconnect();
-                return;
-            }
-            if (!this.connection.reconnecting) {
-                this.connection.reset();
-            }
-            this.connection.connect(this.jid, password, this.onConnectStatusChanged, BOSH_WAIT);
-        }
-    };
-
     // Initialization
     // --------------
     // This is the end of the initialize method.
@@ -1294,7 +1306,7 @@ _converse.initialize = async function (settings, callback) {
     if (_converse.isTestEnv()) {
         await finishInitialization();
         return _converse;
-    } else if (!_.isUndefined(i18n)) {
+    } else if (i18n !== undefined) {
         const url = u.interpolate(_converse.locales_url, {'locale': _converse.locale});
         try {
             await i18n.fetchTranslations(_converse.locale, _converse.locales, url);
@@ -1362,6 +1374,11 @@ _converse.api = {
          */
         async reconnect () {
             const conn_status = _converse.connfeedback.get('connection_status');
+
+            if (_converse.authentication === _converse.ANONYMOUS) {
+                tearDown();
+                clearSession();
+            }
             if (conn_status === Strophe.Status.CONNFAIL) {
                 // When reconnecting with a new transport, we call setUserJID
                 // so that a new resource is generated, to avoid multiple
@@ -1375,16 +1392,29 @@ _converse.api = {
                     _converse.connection._proto = new Strophe.Bosh(_converse.connection);
                     _converse.connection.service = _converse.bosh_service_url;
                 } else if (_converse.api.connection.isType('bosh') && _converse.websocket_url) {
-                    await setUserJID(_converse.bare_jid);
+                    if (_converse.authentication === _converse.ANONYMOUS) {
+                        // When reconnecting anonymously, we need to connect with only
+                        // the domain, not the full JID that we had in our previous
+                        // (now failed) session.
+                        await setUserJID(_converse.settings.jid);
+                    } else {
+                        await setUserJID(_converse.bare_jid);
+                    }
                     _converse.connection._proto._doDisconnect();
                     _converse.connection._proto = new Strophe.Websocket(_converse.connection);
                     _converse.connection.service = _converse.websocket_url;
                 }
             }
-            if ([Strophe.Status.RECONNECTING, Strophe.Status.CONNFAIL].includes(conn_status)) {
+            if (conn_status === Strophe.Status.AUTHFAIL && _converse.authentication === _converse.ANONYMOUS) {
+                // When reconnecting anonymously, we need to connect with only
+                // the domain, not the full JID that we had in our previous
+                // (now failed) session.
+                await setUserJID(_converse.settings.jid);
+            }
+            if (_converse.connection.reconnecting) {
                 debouncedReconnect();
             } else {
-                reconnect();
+                return reconnect();
             }
         },
 
@@ -1427,7 +1457,7 @@ _converse.api = {
             _converse.trigger.apply(_converse, arguments);
         }
         const promise = _converse.promises[name];
-        if (!_.isUndefined(promise)) {
+        if (promise !== undefined) {
             promise.resolve();
         }
     },
@@ -1455,40 +1485,39 @@ _converse.api = {
          * to log the user in by calling the `prebind_url` or `credentials_url` depending
          * on whether prebinding is used or not.
          *
-         * Otherwise the user will be shown a login form.
-         *
          * @method _converse.api.user.login
          * @param {string} [jid]
          * @param {string} [password]
-         * @param {boolean} [reconnecting]
          */
-        async login (jid, password, reconnecting) {
+        async login (jid, password) {
             if (_converse.api.connection.isType('bosh')) {
-                if (reconnecting && _converse.prebind_url) {
-                    return _converse.startNewBOSHSession();
-                } else if (await _converse.restoreBOSHSession()) {
+                if (await _converse.restoreBOSHSession()) {
                     return;
+                } else if (_converse.authentication === _converse.PREBIND) {
+                    return _converse.startNewPreboundBOSHSession();
                 }
+            } else if (_converse.authentication === _converse.PREBIND) {
+                throw new Error("authentication is set to 'prebind' but we don't have a BOSH connection");
             }
+
             if (jid || _converse.jid) {
                 // Reassign because we might have gained a resource
                 jid = await setUserJID(jid || _converse.jid);
             }
             password = password || _converse.password;
             const credentials = (jid && password) ? { jid, password } : null;
-            _converse.attemptNonPreboundSession(credentials, reconnecting);
+            attemptNonPreboundSession(credentials);
         },
 
         /**
          * Logs the user out of the current XMPP session.
-         *
          * @method _converse.api.user.logout
          * @example _converse.api.user.logout();
          */
         logout () {
             clearSession();
             _converse.setDisconnectionCause(_converse.LOGOUT, undefined, true);
-            if (!_.isUndefined(_converse.connection)) {
+            if (_converse.connection !== undefined) {
                 _converse.connection.disconnect();
             } else {
                 tearDown();
@@ -1775,7 +1804,7 @@ _converse.api = {
             return u.waitUntil(condition);
         } else {
             const promise = _converse.promises[condition];
-            if (_.isUndefined(promise)) {
+            if (promise === undefined) {
                 return null;
             }
             return promise;
@@ -1829,6 +1858,7 @@ _converse.api = {
  * or closured data. To do that, you’ll need to create a plugin, which has
  * access to the private API method.
  *
+ * @global
  * @namespace converse
  */
 const converse = {
@@ -1884,7 +1914,7 @@ const converse = {
          */
         add (name, plugin) {
             plugin.__name__ = name;
-            if (!_.isUndefined(_converse.pluggable.plugins[name])) {
+            if (_converse.pluggable.plugins[name] !== undefined) {
                 throw new TypeError(
                     `Error: plugin with name "${name}" has already been ` + 'registered!'
                 );

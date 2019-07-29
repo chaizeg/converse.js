@@ -596,7 +596,7 @@ converse.plugins.add('converse-muc-views', {
 
             showRoomDetailsModal (ev) {
                 ev.preventDefault();
-                if (_.isUndefined(this.model.room_details_modal)) {
+                if (this.model.room_details_modal === undefined) {
                     this.model.room_details_modal = new _converse.RoomDetailsModal({'model': this.model});
                 }
                 this.model.room_details_modal.show(ev);
@@ -648,7 +648,8 @@ converse.plugins.add('converse-muc-views', {
             },
 
             informOfOccupantsRoleChange (occupant, changed) {
-                if (changed === "none") {
+                if (changed === "none" || occupant.changed.affiliation) {
+                    // We don't inform of role changes if they accompany affiliation changes.
                     return;
                 }
                 const previous_role = occupant._previousAttributes.role;
@@ -656,7 +657,7 @@ converse.plugins.add('converse-muc-views', {
                     this.showChatEvent(__("%1$s is no longer a moderator", occupant.get('nick')))
                 }
                 if (previous_role === 'visitor') {
-                    this.showChatEvent(__("%1$s has been given a voice again", occupant.get('nick')))
+                    this.showChatEvent(__("%1$s has been given a voice", occupant.get('nick')))
                 }
                 if (occupant.get('role') === 'visitor') {
                     this.showChatEvent(__("%1$s has been muted", occupant.get('nick')))
@@ -1527,14 +1528,14 @@ converse.plugins.add('converse-muc-views', {
             },
 
             showAddRoomModal (ev) {
-                if (_.isUndefined(this.add_room_modal)) {
+                if (this.add_room_modal === undefined) {
                     this.add_room_modal = new _converse.AddChatRoomModal({'model': this.model});
                 }
                 this.add_room_modal.show(ev);
             },
 
             showListRoomsModal(ev) {
-                if (_.isUndefined(this.list_rooms_modal)) {
+                if (this.list_rooms_modal === undefined) {
                     this.list_rooms_modal = new _converse.ListChatRoomsModal({'model': this.model});
                 }
                 this.list_rooms_modal.show(ev);
@@ -1895,7 +1896,7 @@ converse.plugins.add('converse-muc-views', {
         function fetchAndSetMUCDomain (controlboxview) {
             if (controlboxview.model.get('connected')) {
                 if (!controlboxview.roomspanel.model.get('muc_domain')) {
-                    if (_.isUndefined(_converse.muc_domain)) {
+                    if (_converse.muc_domain === undefined) {
                         setMUCDomainFromDisco(controlboxview);
                     } else {
                         setMUCDomain(_converse.muc_domain, controlboxview);
@@ -2000,7 +2001,7 @@ converse.plugins.add('converse-muc-views', {
                  */
                 'close' (jids) {
                     let views;
-                    if (_.isUndefined(jids)) {
+                    if (jids === undefined) {
                         views = _converse.chatboxviews;
                     } else if (_.isString(jids)) {
                         views = [_converse.chatboxviews.get(jids)].filter(v => v);

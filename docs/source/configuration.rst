@@ -384,11 +384,11 @@ automatically joined once the user has logged in.
 
 You can either specify a simple list of room JIDs, in which case your nickname
 will be taken from your JID, or you can specify a list of maps, where each map
-specifies the room's JID and the nickname that should be used.
+specifies the room's JID and other options.
 
 For example::
 
-    `[{'jid': 'room@example.org', 'nick': 'WizardKing69' }]`
+    `[{'jid': 'room@example.org', 'nick': 'WizardKing69', 'minimized': true }]`
 
 
 blacklisted_plugins
@@ -450,6 +450,7 @@ Example:
 
 
 .. _`bosh-service-url`:
+
 
 bosh_service_url
 ----------------
@@ -757,6 +758,15 @@ messaging instead.
 This value may be provided together with a ``password`` instead of supplying a
 `credentials_url`_ when setting ``auto_login`` to ``true``.
 
+.. _`keepalive`:
+
+keepalive
+---------
+
+* Default:    ``true``
+
+Determines whether Converse will attempt to keep you logged in across page loads.
+
 
 .. _`locales`:
 
@@ -953,6 +963,28 @@ other domains.
 
 If you want to restrict MUCs to only this domain, then set `locked_domain`_ to
 ``true``.
+
+
+muc_fetch_members
+-----------------
+
+* Default:  ``true``
+
+Determines whether Converse.js will fetch the member lists for a MUC
+(multi-user chat) when the user first enters it.
+
+Here's the relevant part from the MUC XEP: https://xmpp.org/extensions/xep-0045.html#getmemberlist
+
+The MUC service won't necessarily allow any user to fetch member lists,
+but can usually be configured to do so.
+
+The member lists consists of three lists of users who have the affiliations
+``member``, ``admin`` and ``owner`` respectively.
+
+By fetching member lists, Converse.js will always show these users as
+participants of the MUC, which makes it behave a bit more like modern chat
+apps.
+
 
 muc_history_max_stanzas
 -----------------------

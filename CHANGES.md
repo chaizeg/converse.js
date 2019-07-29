@@ -21,12 +21,14 @@
 - New config option [clear_messages_on_reconnection](https://conversejs.org/docs/html/configuration.html#clear-messages-on-reconnection)
 - New config option [enable_smacks](https://conversejs.org/docs/html/configuration.html#enable-smacks)
 - New config option [message_limit](https://conversejs.org/docs/html/configuration.html#message-limit)
+- New config option [muc_fetch_members](https://conversejs.org/docs/html/configuration.html#muc-fetch-members)
 - New config option [muc_mention_autocomplete_min_chars](https://conversejs.org/docs/html/configuration.html#muc-mention-autocomplete-min-chars)
 - New config option [muc_show_join_leave_status](https://conversejs.org/docs/html/configuration.html#muc-show-join-leave-status)
 - New config option [singleton](https://conversejs.org/docs/html/configuration.html#singleton)
   By setting this option to `false` and `view_mode` to `'embedded'`, it's now possible to
   "embed" the full app and not just a single chat. To embed just a single chat, it's now
   necessary to explicitly set `singleton` to `true`.
+- Re-add the previously removed config option [keepalive](https://conversejs.org/docs/html/configuration.html#keepalive)
 - New event: [chatBoxBlurred](https://conversejs.org/docs/html/api/-_converse.html#event:chatBoxBlurred)
 - New event: [chatReconnected](https://conversejs.org/docs/html/api/-_converse.html#event:chatReconnected)
 - #316: Add support for XEP-0198 Stream Management
