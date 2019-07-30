@@ -255,6 +255,24 @@
                 }
             }
 
+            .chat-msg__reacts{
+                display: flex;
+                background: white;
+                flex-direction: row-reverse;
+                height: 25px;
+                .react {
+                    height: var(--message-font-size);
+                    font-size: calc(var(--message-font-size)*(6/10));
+                    padding: 4px;
+                    border: none;
+                    cursor: pointer;
+                    &:focus {
+                        display: block;
+                    }
+                }
+            }
+
+
             .chat-msg__avatar {
                 margin-top: 0.5em;
                 vertical-align: middle;
