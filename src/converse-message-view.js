@@ -340,7 +340,7 @@ converse.plugins.add('converse-message-view', {
                     the div is to be added later into the document
                 */
                 if(msg){  
-                    var body = msg.querySelectorAll('.chat-msg_content');
+                    var body = msg.querySelectorAll('.chat-msg_body');
                     var callQuits = false;
                     //removing other reactions by same user
                     if(body != null && body != undefined && body.length > 0){
@@ -398,8 +398,8 @@ converse.plugins.add('converse-message-view', {
                             counter.innerHTML = '1';
                             reaction.appendChild(counter);
                             var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
-                            // body[0].insertBefore(reaction, refNode.nextSibling);
-                            body[0].querySelectorAll('.chat-msg__reacts')[0].appendChild(reaction);
+                            body[0].insertBefore(reaction, refNode.nextSibling);
+                            // body[0].querySelectorAll('.chat-msg__reacts')[0].appendChild(reaction);
                             this.savedReactions[this.savedReactions.indexOf(this.model)].save({
                                 'rendered': true
                             });
@@ -492,7 +492,7 @@ converse.plugins.add('converse-message-view', {
                         console.log('removed or rendered');
                         return;
                     }
-                    var body = message[0].querySelectorAll('.chat-msg__content');
+                    var body = message[0].querySelectorAll('.chat-msg__body');
                     if(body != null && body != undefined && body.length > 0){
                         var prevReact =  body[0].querySelectorAll('#'+this.model.get('message'));
                         if(prevReact == null || prevReact == undefined || prevReact.length == 0)
@@ -543,8 +543,8 @@ converse.plugins.add('converse-message-view', {
                             counter.innerHTML = '1';
                             reaction.appendChild(counter);
                             var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
-                            // body[0].insertBefore(reaction, refNode.nextSibling);
-                            body[0].querySelectorAll('.chat-msg__reacts')[0].appendChild(reaction);
+                            body[0].insertBefore(reaction, refNode.nextSibling);
+                            // body[0].querySelectorAll('.chat-msg__reacts')[0].appendChild(reaction);
                             this.savedReactions[this.savedReactions.indexOf(this.model)].save({
                                 'rendered': true
                             });
