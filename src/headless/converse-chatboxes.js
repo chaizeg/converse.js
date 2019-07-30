@@ -732,9 +732,7 @@ converse.plugins.add('converse-chatboxes', {
             },
 
             /**
-             * Responsible for sending off a text message inside an ongoing
-             * chat conversation.
-             *
+             * Responsible for sending off a text message inside an ongoing chat conversation.
              * @method _converse.ChatBox#sendMessage
              * @memberOf _converse.ChatBox
              * @param {String} text - The chat message text
@@ -773,7 +771,7 @@ converse.plugins.add('converse-chatboxes', {
                     });
                 }
                 _converse.api.send(this.createMessageStanza(message));
-                return true;
+                return message;
             },
 
             /**
