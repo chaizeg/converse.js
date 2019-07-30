@@ -278,30 +278,10 @@ converse.plugins.add('converse-message-view', {
                         }
                     }
                 }
-                // //console.log(this.savedReactions);
                 const promise = u.renderImageURLs(_converse, msg_content);
                 if (this.model.get('type') !== 'headline') {
                     this.renderAvatar(msg);
                 }
-                // // re-rendering reactions 
-                // var savedId = this.model.get('msgid');
-                // //console.log(this.savedReactions.length);
-                // if(this.savedReactions.length > 0)
-                // {
-                //     //console.log('re-rendering reactions');
-                //     var savedLength = this.savedReactions.length;
-                //     //console.log(this.savedReactions.length);
-                //     var currentThis = this.model;
-                //     for(var i = 0; i < this.savedReactions.length ; i++){
-                //         //console.log(this.model);
-                //         this.model = this.savedReactions[i];
-                //         if(this.model.get('reactsTo')==savedId){
-                //             this.renderReaction(msg);
-                //         }
-                //     }
-                //     //console.log('done');
-                //     this.model = currentThis;
-                // }
                 await promise;
                 this.replaceElement(msg);
                 //console.log('replaced element');
@@ -309,7 +289,6 @@ converse.plugins.add('converse-message-view', {
                 if (this.model.collection) {
                     // If the model gets destroyed in the meantime, it no
                     // longer has a collection.
-                    //console.log('triggering');
                     this.model.collection.trigger('rendered', this);
                 }
                  
@@ -382,7 +361,7 @@ converse.plugins.add('converse-message-view', {
                //console.log(msg);
                 if(msg != undefined && msg != null){  
                     //console.log('im in');
-                    var body = msg.querySelectorAll('.chat-msg_body');
+                    var body = msg.querySelectorAll('.chat-msg_content');
                     var callQuits = false;
                     //removing other reactions by same user
                     if(body != null && body != undefined && body.length > 0){
@@ -440,8 +419,8 @@ converse.plugins.add('converse-message-view', {
                             counter.innerHTML = '1';
                             reaction.appendChild(counter);
                             var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
-                            body[0].insertBefore(reaction, refNode.nextSibling);
-                            // body[0].querySelectorAll('.chat-msg__reacts')[0].appendChild(reaction);
+                            // body[0].insertBefore(reaction, refNode.nextSibling);
+                            body[0].querySelectorAll('.chat-msg__reacts')[0].appendChild(reaction);
                             this.savedReactions[this.savedReactions.indexOf(this.model)].save({
                                 'rendered': true
                             });
@@ -537,7 +516,7 @@ converse.plugins.add('converse-message-view', {
                         //console.log('removed or rendered');
                         return;
                     }
-                    var body = message[0].querySelectorAll('.chat-msg__body');
+                    var body = message[0].querySelectorAll('.chat-msg__content');
                     if(body != null && body != undefined && body.length > 0){
                         var prevReact =  body[0].querySelectorAll('#'+this.model.get('message'));
                         if(prevReact == null || prevReact == undefined || prevReact.length == 0)
@@ -588,8 +567,8 @@ converse.plugins.add('converse-message-view', {
                             counter.innerHTML = '1';
                             reaction.appendChild(counter);
                             var refNode = body[0].getElementsByClassName("chat-msg__message")[0];
-                            body[0].insertBefore(reaction, refNode.nextSibling);
-                            // body[0].querySelectorAll('.chat-msg__reacts')[0].appendChild(reaction);
+                            // body[0].insertBefore(reaction, refNode.nextSibling);
+                            body[0].querySelectorAll('.chat-msg__reacts')[0].appendChild(reaction);
                             this.savedReactions[this.savedReactions.indexOf(this.model)].save({
                                 'rendered': true
                             });

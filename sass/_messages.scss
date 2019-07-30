@@ -257,12 +257,13 @@
 
             .chat-msg__reacts{
                 display: flex;
-                background: white;
+                background: transparent;
                 flex-direction: row-reverse;
-                height: 25px;
+                height: 20px;
+                padding-right: 20px;
                 .react {
                     height: var(--message-font-size);
-                    font-size: calc(var(--message-font-size)*(6/10));
+                    font-size: calc(var(--message-font-size)*(9/10));
                     padding: 4px;
                     border: none;
                     cursor: pointer;
