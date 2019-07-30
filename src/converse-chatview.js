@@ -1479,6 +1479,7 @@ converse.plugins.add('converse-chatview', {
 
             _scrollDown () {
                 /* Inner method that gets debounced */
+                console.log('triggered');
                 if (this.content === undefined) {
                     return;
                 }
