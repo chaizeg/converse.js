@@ -329,8 +329,8 @@ converse.plugins.add('converse-message-view', {
                 
                 //reaction is added to independent div 'msg'
                 if(msg){    
-                    if(this.savedReactions.indexOf(msg) != -1 && (this.savedReactions[this.savedReactions.indexOf(msg)].get('rendered')) 
-                    || this.savedReactions[this.savedReactions.indexOf(msg)].get('removed')){
+                    if(this.savedReactions.indexOf(this.model) != -1 && (this.savedReactions[this.savedReactions.indexOf(this.model)].get('rendered')) 
+                    || this.savedReactions[this.savedReactions.indexOf(this.model)].get('removed')){
                         console.log('removed or rendered');
                         return;
                     }
@@ -394,7 +394,7 @@ converse.plugins.add('converse-message-view', {
                                     counter.innerHTML = parseInt(counter.innerHTML)-1;                                    
                                 }
                                 counter.setAttribute('data-reactusers', counter.getAttribute('data-reactusers').replace(this.model.get('from'), ''));
-                                var indexMsg = this.savedReactions.indexOf(msg);
+                                var indexMsg = this.savedReactions.indexOf(this.model);
                                 this.savedReactions[indexMsg].save({
                                     'removed': true
                                 });
@@ -442,8 +442,8 @@ converse.plugins.add('converse-message-view', {
                     this.savedReactions.push(this.model);
                 }
                 if(message != null && message != undefined && message.length > 0){
-                    if(this.savedReactions.indexOf(msg) != -1 && (this.savedReactions[this.savedReactions.indexOf(msg)].get('rendered')) 
-                    || this.savedReactions[this.savedReactions.indexOf(msg)].get('removed')){
+                    if(this.savedReactions.indexOf(this.model) != -1 && (this.savedReactions[this.savedReactions.indexOf(this.model)].get('rendered')) 
+                    || this.savedReactions[this.savedReactions.indexOf(this.model)].get('removed')){
                         console.log('removed or rendered');
                         return;
                     }
