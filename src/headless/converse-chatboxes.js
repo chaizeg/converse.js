@@ -1037,6 +1037,7 @@ converse.plugins.add('converse-chatboxes', {
             },
 
             registerMessageHandler () {
+                console.log('registering handler');
                 _converse.connection.addHandler(stanza => {
                     this.onMessage(stanza);
                     return true;
@@ -1118,6 +1119,8 @@ converse.plugins.add('converse-chatboxes', {
              * @param { XMLElement } stanza - The incoming message stanza
              */
             async onMessage (stanza) {
+                console.log('received this');
+                console.log(stanza);
                 let to_jid = stanza.getAttribute('to');
                 const to_resource = Strophe.getResourceFromJid(to_jid);
 
@@ -1186,7 +1189,6 @@ converse.plugins.add('converse-chatboxes', {
                             !chatbox.handleReceipt (stanza, from_jid, is_carbon, is_me, is_mam) &&
                             !chatbox.handleChatMarker(stanza, from_jid, is_carbon, is_roster_contact, is_mam)) {
 
-                        // console.log('passed here lol');
                         const attrs = await chatbox.getMessageAttributesFromStanza(stanza, original_stanza);
                         if (attrs['chat_state'] || !u.isEmptyMessage(attrs)) {
                             const msg = chatbox.correctMessage(attrs) || chatbox.messages.create(attrs);

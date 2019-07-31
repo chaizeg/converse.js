@@ -86,7 +86,7 @@ converse.plugins.add('converse-mam', {
             },
 
             async fetchArchivedMessages (options) {
-                // console.log('fetching');
+                console.log('fetching');
                 if (this.disable_mam) {
                     return;
                 }
@@ -117,8 +117,8 @@ converse.plugins.add('converse-mam', {
                     _converse.log(e, Strophe.LogLevel.ERROR);
                 }
                 if (result.messages) {
-                    // console.log('i fetched this out :D');
-                    // console.log(result);
+                    console.log('i fetched this out :D');
+                    console.log(result);
                     result.messages.forEach(message_handler);
                 }
             },
@@ -497,6 +497,9 @@ converse.plugins.add('converse-mam', {
                         rsm = new _converse.RSM({'xml': set});
                         Object.assign(rsm, _.pick(options, _.concat(MAM_ATTRIBUTES, ['max'])));
                     }
+                    console.log('i got these');
+                    console.log(messages);
+                    console.log(rsm);
                     return {
                         messages,
                         rsm

@@ -40,10 +40,12 @@ converse.plugins.add('converse-mam-views', {
                     const by_jid = this.model.get('jid');
                     const stanza_id = oldest_message.get(`stanza_id ${by_jid}`);
                     if (stanza_id) {
+                        console.log('i have to fetch');
                         this.model.fetchArchivedMessages({
                             'before': stanza_id
                         });
                     } else {
+                        console.log('still gotta fetch');
                         this.model.fetchArchivedMessages({
                             'end': oldest_message.get('time')
                         });

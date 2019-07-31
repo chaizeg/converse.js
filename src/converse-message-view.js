@@ -218,7 +218,9 @@ converse.plugins.add('converse-message-view', {
                 const role = this.model.vcard ? this.model.vcard.get('role') : null;
                 const roles = role ? role.split(',') : [];
                 if(this.model.get('reactsTo')){
-                    //console.log('render reaction');
+                    console.log('render reaction');
+                    console.log(this.model.get('msgid'));
+                    console.log(this.model.get('reactsTo'));
                     this.renderReaction();
                     return;
                  }
