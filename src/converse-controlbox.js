@@ -567,6 +567,9 @@ converse.plugins.add('converse-controlbox', {
             }
         });
 
+
+        /******************** Event Handlers ********************/
+
         _converse.api.listen.on('chatBoxViewsInitialized', () => {
             _converse.chatboxes.on('add', item => {
                 if (item.get('type') === _converse.CONTROLBOX_TYPE) {
@@ -583,18 +586,17 @@ converse.plugins.add('converse-controlbox', {
         });
 
         _converse.api.listen.on('clearSession', () => {
-            if (_converse.config.get('trusted')) {
-                const chatboxes = _.get(_converse, 'chatboxes', null);
-                if (!_.isNil(chatboxes)) {
-                    const controlbox = chatboxes.get('controlbox');
-                    if (controlbox &&
-                            controlbox.collection &&
-                            controlbox.collection.browserStorage) {
-                        controlbox.save({'connected': false});
-                    }
-                }
+            const chatboxviews = _.get(_converse, 'chatboxviews', null);
+            const view = chatboxviews && chatboxviews.get('controlbox');
+            if (view) {
+               u.safeSave(view.model, {'connected': false});
+               if (_.get(view, 'controlbox_pane')) {
+                  view.controlbox_pane.remove();
+                  delete view.controlbox_pane;
+               }
             }
         });
+
 
         Promise.all([
             _converse.api.waitUntil('connectionInitialized'),
@@ -618,16 +620,8 @@ converse.plugins.add('converse-controlbox', {
         _converse.api.listen.on('disconnected', () => disconnect().renderLoginPanel());
         _converse.api.listen.on('will-reconnect', disconnect);
 
-        _converse.api.listen.on('clearSession', () => {
-            const view = _converse.chatboxviews.get('controlbox');
-            if (view && view.controlbox_pane) {
-                view.controlbox_pane.remove();
-                delete view.controlbox_pane;
-            }
-        });
+        /************************ API ************************/
 
-
-        /************************ BEGIN API ************************/
         Object.assign(_converse.api, {
             /**
              * The "controlbox" namespace groups methods pertaining to the

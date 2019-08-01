@@ -1932,6 +1932,8 @@ converse.plugins.add('converse-muc-views', {
         _converse.api.listen.on('clearSession', () => {
             const view = _converse.chatboxviews.get('controlbox');
             if (view && view.roomspanel) {
+                view.roomspanel.model.destroy();
+                view.roomspanel.model.browserStorage._clear();
                 view.roomspanel.remove();
                 delete view.roomspanel;
             }
