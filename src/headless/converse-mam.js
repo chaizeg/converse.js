@@ -147,6 +147,7 @@ converse.plugins.add('converse-mam', {
                 if (this.get('connection_status') !== converse.ROOMSTATUS.ENTERED ||
                         !this.get('mam_enabled') ||
                         this.get('mam_initialized')) {
+                    console.log('not necessary');
                     return;
                 }
                 this.fetchArchivedMessages();

@@ -515,7 +515,7 @@ converse.plugins.add('converse-message-view', {
                     if(existingIndex != undefined && existingIndex != -1 &&
                     (this.savedReactions[existingIndex].get('rendered')
                     || this.savedReactions[existingIndex].get('removed'))){
-                        //console.log('removed or rendered');
+                        console.log('removed or rendered');
                         return;
                     }
                     var body = message[0].querySelectorAll('.chat-msg__content');
