@@ -10,6 +10,7 @@
 - Groupchat default configuration now supports `list-multi` fields
 - Bugfix: Don't set `muc_domain` for roomspanel if `locked_muc_domain` is `true`.
 - Bugfix: Modal auto-closes when you open it for a second time.
+- Bugfix: `Cannot read property 'parentElement' of null` in shadow DOM
 - Take roster nickname into consideration when rendering messages and chat headings.
 - Hide the textarea when a user is muted in a groupchat.
 - Don't restore a BOSH session without knowing the JID
@@ -47,15 +48,18 @@
 - #1524: OMEMO libsignal-protocol.js Invalid signature
 - #1532: Converse reloads on enter pressed in the filter box
 - #1538: Allow adding self as contact
+- #1548: Add support for paging through the MAM results when filling in the blanks
 - #1550: Legitimate carbons being blocked due to erroneous forgery check
 - #1554: Room auto-configuration broke if the config form contained fields with type `fixed`
 - #1558: `this.get` is not a function error when `forward_messages` is set to `true`.
+- #1561: Don't call `clear` on local or session storage
 - #1572: In `fullscreen` view mode the top is cut off on iOS
 - #1575: MUC invitation autocomplete list doesn't appear
 - #1576: Converse gets stuck with spinner when logging out with `auto_login` set to `true`
 - #1579: Trim spaces at the beginning and end of a JID (when adding contact)
 - #1585: Upload files by pasting from clipboard
 - #1586: Not possible to kick someone with a space in their nickname
+- #1664: Blacklisting converse-profile makes the control box totally blank
 
 ### Breaking changes
 
@@ -72,6 +76,7 @@
 - Removed events `statusChanged` and `statusMessageChanged`. Instead, you can
   listen on the `change:status` or `change:status\_message` events on
   `_converse.xmppstatus`.
+- #1403: Rename show_chatstate_notifications to show_chat_state_notifications
 
 ### API changes
 

@@ -29,7 +29,7 @@ converse.plugins.add('converse-notification', {
         _converse.api.settings.update({
             notify_all_room_messages: false,
             show_desktop_notifications: true,
-            show_chatstate_notifications: false,
+            show_chat_state_notifications: false,
             chatstate_notification_blacklist: [],
             // ^ a list of JIDs to ignore concerning chat state notifications
             play_sounds: true,
@@ -37,17 +37,6 @@ converse.plugins.add('converse-notification', {
             notification_icon: 'logo/conversejs-filled.svg',
             notification_delay: 5000
         });
-
-        _converse.isOnlyChatStateNotification = (msg) =>
-            // See XEP-0085 Chat State Notification
-            _.isNull(msg.querySelector('body')) && (
-                    _.isNull(msg.querySelector(_converse.ACTIVE)) ||
-                    _.isNull(msg.querySelector(_converse.COMPOSING)) ||
-                    _.isNull(msg.querySelector(_converse.INACTIVE)) ||
-                    _.isNull(msg.querySelector(_converse.PAUSED)) ||
-                    _.isNull(msg.querySelector(_converse.GONE))
-                )
-        ;
 
         _converse.shouldNotifyOfGroupMessage = function (message) {
             /* Is this a group message worthy of notification?
@@ -62,7 +51,7 @@ converse.plugins.add('converse-notification', {
             }
             const room = _converse.chatboxes.get(room_jid);
             const body = message.querySelector('body');
-            if (_.isNull(body)) {
+            if (body === null) {
                 return false;
             }
             const mentioned = (new RegExp(`\\b${room.get('nick')}\\b`)).test(body.textContent);
@@ -76,10 +65,9 @@ converse.plugins.add('converse-notification', {
 
         _converse.isMessageToHiddenChat = function (message) {
             if (_converse.isUniView()) {
-                const jid = Strophe.getBareJidFromJid(message.getAttribute('from')),
-                      view = _converse.chatboxviews.get(jid);
-
-                if (!_.isNil(view)) {
+                const jid = Strophe.getBareJidFromJid(message.getAttribute('from'));
+                const view = _converse.chatboxviews.get(jid);
+                if (view) {
                     return view.model.get('hidden') || _converse.windowState === 'hidden' || !u.isVisible(view.el);
                 }
                 return true;
@@ -89,7 +77,7 @@ converse.plugins.add('converse-notification', {
 
         _converse.shouldNotifyOfMessage = function (message) {
             const forwarded = message.querySelector('forwarded');
-            if (!_.isNull(forwarded)) {
+            if (forwarded !== null) {
                 return false;
             } else if (message.getAttribute('type') === 'groupchat') {
                 return _converse.shouldNotifyOfGroupMessage(message);
@@ -97,9 +85,8 @@ converse.plugins.add('converse-notification', {
                 // We want to show notifications for headline messages.
                 return _converse.isMessageToHiddenChat(message);
             }
-            const is_me = Strophe.getBareJidFromJid(
-                    message.getAttribute('from')) === _converse.bare_jid;
-            return !_converse.isOnlyChatStateNotification(message) &&
+            const is_me = Strophe.getBareJidFromJid(message.getAttribute('from')) === _converse.bare_jid;
+            return !u.isOnlyChatStateNotification(message) &&
                 !is_me &&
                 (_converse.show_desktop_notifications === 'all' || _converse.isMessageToHiddenChat(message));
         };
@@ -248,7 +235,7 @@ converse.plugins.add('converse-notification', {
              * Will show an HTML5 notification to indicate that the chat
              * status has changed.
              */
-            if (_converse.areDesktopNotificationsEnabled() && _converse.show_chatstate_notifications) {
+            if (_converse.areDesktopNotificationsEnabled() && _converse.show_chat_state_notifications) {
                 _converse.showChatStateNotification(contact);
             }
         };

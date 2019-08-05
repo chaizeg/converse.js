@@ -93,7 +93,7 @@ converse.plugins.add('converse-bookmarks', {
 
         _converse.Bookmark = Backbone.Model;
 
-        _converse.Bookmarks = Backbone.Collection.extend({
+        _converse.Bookmarks = _converse.Collection.extend({
             model: _converse.Bookmark,
             comparator: (item) => item.get('name').toLowerCase(),
 
@@ -231,10 +231,9 @@ converse.plugins.add('converse-bookmarks', {
                 window.sessionStorage.setItem(this.fetched_flag, true);
                 _converse.log('Error while fetching bookmarks', Strophe.LogLevel.ERROR);
                 _converse.log(iq.outerHTML, Strophe.LogLevel.DEBUG);
-                if (!_.isNil(deferred)) {
+                if (deferred) {
                     if (iq.querySelector('error[type="cancel"] item-not-found')) {
-                        // Not an exception, the user simply doesn't have
-                        // any bookmarks.
+                        // Not an exception, the user simply doesn't have any bookmarks.
                         return deferred.resolve();
                     } else {
                         return deferred.reject(new Error("Could not fetch bookmarks"));

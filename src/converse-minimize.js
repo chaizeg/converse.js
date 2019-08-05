@@ -206,7 +206,7 @@ converse.plugins.add('converse-minimize', {
                 if (!this.model.isScrolledUp()) {
                     this.model.clearUnreadMsgCounter();
                 }
-                this.model.setChatState(_converse.INACTIVE);
+                this.model.setChatState(_converse.ACTIVE);
                 this.show();
                 /**
                  * Triggered when a previously minimized chat gets maximized
@@ -530,7 +530,9 @@ converse.plugins.add('converse-minimize', {
 
 
         _converse.MinimizedChatsToggleView = Backbone.NativeView.extend({
-            el: '#toggle-minimized-chats',
+            _setElement (){
+                this.el = _converse.root.querySelector('#toggle-minimized-chats');
+            },
 
             initialize () {
                 this.model.on('change:num_minimized', this.render, this);

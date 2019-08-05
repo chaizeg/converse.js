@@ -70,7 +70,7 @@ function parseBundle (bundle_el) {
 converse.plugins.add('converse-omemo', {
 
     enabled (_converse) {
-        return !_.isNil(window.libsignal) && !_converse.blacklisted_plugins.includes('converse-omemo') && _converse.config.get('trusted');
+        return window.libsignal && !_converse.blacklisted_plugins.includes('converse-omemo') && _converse.config.get('trusted');
     },
 
     dependencies: ["converse-chatview", "converse-pubsub"],
@@ -696,7 +696,7 @@ converse.plugins.add('converse-omemo', {
             },
 
             isTrustedIdentity (identifier, identity_key, direction) {
-                if (_.isNil(identifier)) {
+                if (identifier === null || identifier === undefined) {
                     throw new Error("Can't check identity key for invalid key");
                 }
                 if (!(identity_key instanceof ArrayBuffer)) {
@@ -710,14 +710,14 @@ converse.plugins.add('converse-omemo', {
             },
 
             loadIdentityKey (identifier) {
-                if (_.isNil(identifier)) {
+                if (identifier === null || identifier === undefined) {
                     throw new Error("Can't load identity_key for invalid identifier");
                 }
                 return Promise.resolve(u.base64ToArrayBuffer(this.get('identity_key'+identifier)));
             },
 
             saveIdentity (identifier, identity_key) {
-                if (_.isNil(identifier)) {
+                if (identifier === null || identifier === undefined) {
                     throw new Error("Can't save identity_key for invalid identifier");
                 }
                 const address = new libsignal.SignalProtocolAddress.fromString(identifier),
@@ -977,7 +977,7 @@ converse.plugins.add('converse-omemo', {
             }
         });
 
-        _converse.Devices = Backbone.Collection.extend({
+        _converse.Devices = _converse.Collection.extend({
             model: _converse.Device,
         });
 
@@ -1082,7 +1082,7 @@ converse.plugins.add('converse-omemo', {
          * @namespace _converse.DeviceLists
          * @memberOf _converse
          */
-        _converse.DeviceLists = Backbone.Collection.extend({
+        _converse.DeviceLists = _converse.Collection.extend({
             model: _converse.DeviceList,
             /**
              * Returns the {@link _converse.DeviceList} for a particular JID.
@@ -1104,7 +1104,7 @@ converse.plugins.add('converse-omemo', {
         async function fetchOwnDevices () {
             await fetchDeviceLists();
             let own_devicelist = _converse.devicelists.get(_converse.bare_jid);
-            if (_.isNil(own_devicelist)) {
+            if (!own_devicelist) {
                 own_devicelist = _converse.devicelists.create({'jid': _converse.bare_jid});
             }
             return own_devicelist.fetchDevices();
@@ -1240,6 +1240,8 @@ converse.plugins.add('converse-omemo', {
             }
         }
 
+        /******************** Event Handlers ********************/
+
         _converse.api.waitUntil('chatBoxesInitialized').then(() =>
             _converse.chatboxes.on('add', chatbox => {
                 checkOMEMOSupported(chatbox);
@@ -1250,12 +1252,6 @@ converse.plugins.add('converse-omemo', {
             })
         );
 
-        _converse.api.listen.on('afterTearDown', () => {
-            if (_converse.devicelists) {
-                _converse.devicelists.reset();
-            }
-            delete _converse.omemo_store;
-        });
         _converse.api.listen.on('connected', registerPEPPushHandler);
         _converse.api.listen.on('renderToolbar', view => view.renderOMEMOToolbarButton());
         _converse.api.listen.on('statusInitialized', initOMEMO);
@@ -1271,7 +1267,18 @@ converse.plugins.add('converse-omemo', {
             _converse.generateFingerprints(_converse.bare_jid).catch(_.partial(_converse.log, _, Strophe.LogLevel.ERROR));
         });
 
-        /************************ BEGIN API ************************/
+        _converse.api.listen.on('afterTearDown', () => (delete _converse.omemo_store));
+
+        _converse.api.listen.on('clearSession', () => {
+            if (_converse.shouldClearCache() && _converse.devicelists) {
+                _converse.devicelists.clearSession();
+                delete _converse.devicelists;
+            }
+        });
+
+
+        /************************ API ************************/
+
         Object.assign(_converse.api, {
             /**
              * The "omemo" namespace groups methods relevant to OMEMO

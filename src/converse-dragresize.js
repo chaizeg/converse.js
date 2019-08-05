@@ -147,9 +147,13 @@ converse.plugins.add('converse-dragresize', {
         const dragResizable = {
 
             initDragResize () {
-                /* Determine and store the default box size.
-                 * We need this information for the drag-resizing feature.
-                 */
+                const view = this;
+                const debouncedSetDimensions = _.debounce(() => view.setDimensions());
+                window.addEventListener('resize', view.debouncedSetDimensions)
+                this.model.on('destroy', () => window.removeEventListener('resize', debouncedSetDimensions));
+
+                // Determine and store the default box size.
+                // We need this information for the drag-resizing feature.
                 const flyout = this.el.querySelector('.box-flyout');
                 const style = window.getComputedStyle(flyout);
 
@@ -217,7 +221,7 @@ converse.plugins.add('converse-dragresize', {
                     height = "";
                 }
                 const flyout_el = this.el.querySelector('.box-flyout');
-                if (!_.isNull(flyout_el)) {
+                if (flyout_el !== null) {
                     flyout_el.style.height = height;
                 }
             },
@@ -230,7 +234,7 @@ converse.plugins.add('converse-dragresize', {
                 }
                 this.el.style.width = width;
                 const flyout_el = this.el.querySelector('.box-flyout');
-                if (!_.isNull(flyout_el)) {
+                if (flyout_el !== null) {
                     flyout_el.style.width = width;
                 }
             },
@@ -358,12 +362,7 @@ converse.plugins.add('converse-dragresize', {
             });
         }
         _converse.api.listen.on('registeredGlobalEventHandlers', registerGlobalEventHandlers);
-
         _converse.api.listen.on('beforeShowingChatView', view => view.initDragResize().setDimensions());
-
-        _converse.api.listen.on('chatBoxInitialized', view => {
-            window.addEventListener('resize', _.debounce(() => view.setDimensions(), 100));
-        });
         /************************ END Event Handlers ************************/
     }
 });

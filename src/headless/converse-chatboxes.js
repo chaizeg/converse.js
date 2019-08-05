@@ -154,7 +154,7 @@ converse.plugins.add('converse-chatboxes', {
                  *
                  * https://xmpp.org/extensions/xep-0363.html#request
                  */
-                if (_.isNil(this.file)) {
+                if (!this.file) {
                     return Promise.reject(new Error("file is undefined"));
                 }
                 const iq = converse.env.$iq({
@@ -238,7 +238,7 @@ converse.plugins.add('converse-chatboxes', {
         });
 
 
-        _converse.Messages = Backbone.Collection.extend({
+        _converse.Messages = _converse.Collection.extend({
             model: _converse.Message,
             comparator: 'time'
         });
@@ -301,9 +301,9 @@ converse.plugins.add('converse-chatboxes', {
 
             initMessages () {
                 this.messages = new this.messagesCollection();
-                this.messages.browserStorage = new BrowserStorage.session(this.getMessagesCacheKey());
+                const storage = _converse.config.get('storage');
+                this.messages.browserStorage = new BrowserStorage[storage](this.getMessagesCacheKey());
                 this.messages.chatbox = this;
-
                 this.messages.on('change:upload', (message) => {
                     if (message.get('upload') === _converse.SUCCESS) {
                         _converse.api.send(this.createMessageStanza(message));
@@ -349,7 +349,9 @@ converse.plugins.add('converse-chatboxes', {
                 } catch (e) {
                     _converse.log(e, Strophe.LogLevel.ERROR);
                 } finally {
-                    this.clearMessages();
+                    if (_converse.clear_messages_on_reconnection) {
+                        this.clearMessages();
+                    }
                 }
             },
 
@@ -748,6 +750,10 @@ converse.plugins.add('converse-chatboxes', {
              */
             sendChatState () {
                 if (_converse.send_chat_state_notifications && this.get('chat_state')) {
+                    const allowed = _converse.send_chat_state_notifications;
+                    if (Array.isArray(allowed) && !allowed.includes(this.get('chat_state'))) {
+                        return;
+                    }
                     _converse.api.send(
                         $msg({
                             'id': _converse.connection.getUniqueId(),
@@ -847,7 +853,7 @@ converse.plugins.add('converse-chatboxes', {
             },
 
             isArchived (original_stanza) {
-                return !_.isNil(sizzle(`result[xmlns="${Strophe.NS.MAM}"]`, original_stanza).pop());
+                return !!sizzle(`result[xmlns="${Strophe.NS.MAM}"]`, original_stanza).pop();
             },
 
             getErrorMessage (stanza) {
@@ -896,8 +902,8 @@ converse.plugins.add('converse-chatboxes', {
                 const attrs = Object.assign({
                     'chat_state': chat_state,
                     'is_archived': this.isArchived(original_stanza),
-                    'is_delayed': !_.isNil(delay),
-                    'is_spoiler': !_.isNil(spoiler),
+                    'is_delayed': !!delay,
+                    'is_spoiler': !!spoiler,
                     'is_single_emoji': text ? u.isSingleEmoji(text) : false,
                     'message': text,
                     'msgid': msgid,
@@ -959,8 +965,9 @@ converse.plugins.add('converse-chatboxes', {
                 /* Given a newly received message, update the unread counter if
                  * necessary.
                  */
-                if (!message) { return; }
-                if (_.isNil(message.get('message'))) { return; }
+                if (!message || !message.get('message')) {
+                    return;
+                }
                 if (utils.isNewMessage(message) && this.isHidden()) {
                     this.save({'num_unread': this.get('num_unread') + 1});
                     _converse.incrementMsgCounter();
@@ -977,7 +984,7 @@ converse.plugins.add('converse-chatboxes', {
         });
 
 
-        _converse.ChatBoxes = Backbone.Collection.extend({
+        _converse.ChatBoxes = _converse.Collection.extend({
             comparator: 'time_opened',
 
             model (attrs, options) {
@@ -992,7 +999,7 @@ converse.plugins.add('converse-chatboxes', {
 
                 _converse.connection.addHandler(stanza => {
                     // Message receipts are usually without the `type` attribute. See #1353
-                    if (!_.isNull(stanza.getAttribute('type'))) {
+                    if (stanza.getAttribute('type') !== null) {
                         // TODO: currently Strophe has no way to register a handler
                         // for stanzas without a `type` attribute.
                         // We could update it to accept null to mean no attribute,
@@ -1090,7 +1097,7 @@ converse.plugins.add('converse-chatboxes', {
                 const forwarded = stanza.querySelector('forwarded');
                 const original_stanza = stanza;
 
-                if (!_.isNull(forwarded)) {
+                if (forwarded !== null) {
                     const xmlns = Strophe.NS.CARBONS;
                     is_carbon = sizzle(`received[xmlns="${xmlns}"]`, original_stanza).length > 0;
                     if (is_carbon && original_stanza.getAttribute('from') !== _converse.bare_jid) {
@@ -1106,7 +1113,7 @@ converse.plugins.add('converse-chatboxes', {
                 const from_bare_jid = Strophe.getBareJidFromJid(from_jid);
                 const is_me = from_bare_jid === _converse.bare_jid;
 
-                if (is_me &&_.isNull(to_jid)) {
+                if (is_me && to_jid === null) {
                     return _converse.log(
                         `Don't know how to handle message stanza without 'to' attribute. ${stanza.outerHTML}`,
                         Strophe.LogLevel.ERROR
@@ -1271,7 +1278,7 @@ converse.plugins.add('converse-chatboxes', {
                             attrs.fullname = _.get(contact, 'attributes.fullname');
                         }
                         const chatbox = _converse.chatboxes.getChatBox(jids, attrs, true);
-                        if (_.isNil(chatbox)) {
+                        if (!chatbox) {
                             _converse.log("Could not open chatbox for JID: "+jids, Strophe.LogLevel.ERROR);
                             return;
                         }

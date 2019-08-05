@@ -21,10 +21,10 @@ const Strophe = strophe.default.Strophe;
 const u = {};
 
 u.logger = Object.assign({
-    'debug': _.get(console, 'log') ? console.log.bind(console) : _.noop,
-    'error': _.get(console, 'log') ? console.log.bind(console) : _.noop,
-    'info': _.get(console, 'log') ? console.log.bind(console) : _.noop,
-    'warn': _.get(console, 'log') ? console.log.bind(console) : _.noop
+    'debug': _.get(console, 'log') ? console.log.bind(console) : function noop () {},
+    'error': _.get(console, 'log') ? console.log.bind(console) : function noop () {},
+    'info': _.get(console, 'log') ? console.log.bind(console) : function noop () {},
+    'warn': _.get(console, 'log') ? console.log.bind(console) : function noop () {}
 }, console);
 
 u.isTagEqual = function (stanza, name) {
@@ -128,11 +128,20 @@ u.isEmptyMessage = function (attrs) {
         !attrs['message'];
 };
 
-u.isOnlyChatStateNotification = function (attrs) {
-    if (attrs instanceof Backbone.Model) {
-        attrs = attrs.attributes;
+u.isOnlyChatStateNotification = function (msg) {
+    if (msg instanceof Element) {
+        // See XEP-0085 Chat State Notification
+        return (msg.querySelector('body') === null) && (
+                    (msg.querySelector('active') !== null) ||
+                    (msg.querySelector('composing') !== null) ||
+                    (msg.querySelector('inactive') !== null) ||
+                    (msg.querySelector('paused') !== null) ||
+                    (msg.querySelector('gone') !== null));
     }
-    return attrs['chat_state'] && u.isEmptyMessage(attrs);
+    if (msg instanceof Backbone.Model) {
+        msg = msg.attributes;
+    }
+    return msg['chat_state'] && u.isEmptyMessage(msg);
 };
 
 u.isHeadlineMessage = function (_converse, message) {
@@ -144,9 +153,7 @@ u.isHeadlineMessage = function (_converse, message) {
     if (chatbox && chatbox.get('type') === _converse.CHATROOMS_TYPE) {
         return false;
     }
-    if (message.getAttribute('type') !== 'error' &&
-            !_.isNil(from_jid) &&
-            !_.includes(from_jid, '@')) {
+    if (message.getAttribute('type') !== 'error' && from_jid && !_.includes(from_jid, '@')) {
         // Some servers (I'm looking at you Prosody) don't set the message
         // type to "headline" when sending server messages. For now we
         // check if an @ signal is included, and if not, we assume it's

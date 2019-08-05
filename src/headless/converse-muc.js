@@ -331,7 +331,7 @@ converse.plugins.add('converse-muc', {
          * @namespace _converse.ChatRoomMessages
          * @memberOf _converse
          */
-        _converse.ChatRoomMessages = Backbone.Collection.extend({
+        _converse.ChatRoomMessages = _converse.Collection.extend({
             model: _converse.ChatRoomMessage,
             comparator: 'time'
         });
@@ -629,6 +629,16 @@ converse.plugins.add('converse-muc', {
                 this.removeHandlers();
             },
 
+            close () {
+                try {
+                    this.features.destroy();
+                    this.features.browserStorage._clear();
+                } catch (e) {
+                    _converse.log(e, Strophe.LogLevel.ERROR);
+                }
+                return _converse.ChatBox.prototype.close.call(this);
+            },
+
             sendUnavailablePresence (exit_msg) {
                 const presence = $pres({
                     type: "unavailable",
@@ -779,6 +789,10 @@ converse.plugins.add('converse-muc', {
                         !this.get('chat_state') ||
                         this.get('connection_status') !== converse.ROOMSTATUS.ENTERED ||
                         this.features.get('moderated') && this.getOwnRole() === 'visitor') {
+                    return;
+                }
+                const allowed = _converse.send_chat_state_notifications;
+                if (Array.isArray(allowed) && !allowed.includes(this.get('chat_state'))) {
                     return;
                 }
                 const chat_state = this.get('chat_state');
@@ -1062,8 +1076,8 @@ converse.plugins.add('converse-muc', {
              */
             saveAffiliationAndRole (pres) {
                 const item = sizzle(`x[xmlns="${Strophe.NS.MUC_USER}"] item`, pres).pop();
-                const is_self = !_.isNull(pres.querySelector("status[code='110']"));
-                if (is_self && !_.isNil(item)) {
+                const is_self = (pres.querySelector("status[code='110']") !== null);
+                if (is_self && item) {
                     const affiliation = item.getAttribute('affiliation');
                     const role = item.getAttribute('role');
                     const changes = {};
@@ -1890,7 +1904,7 @@ converse.plugins.add('converse-muc', {
             incrementUnreadMsgCounter (message) {
                 if (!message) { return; }
                 const body = message.get('message');
-                if (_.isNil(body)) { return; }
+                if (!body) { return; }
                 if (u.isNewMessage(message) && this.isHidden()) {
                     const settings = {'num_unread_general': this.get('num_unread_general') + 1};
                     if (this.isUserMentioned(message)) {
@@ -1964,7 +1978,7 @@ converse.plugins.add('converse-muc', {
         });
 
 
-        _converse.ChatRoomOccupants = Backbone.Collection.extend({
+        _converse.ChatRoomOccupants = _converse.Collection.extend({
             model: _converse.ChatRoomOccupant,
 
             comparator (occupant1, occupant2) {

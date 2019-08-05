@@ -141,7 +141,7 @@ converse.plugins.add('converse-roster', {
         };
 
         const Resource = Backbone.Model.extend({'idAttribute': 'name'});
-        const Resources = Backbone.Collection.extend({'model': Resource});
+        const Resources = _converse.Collection.extend({'model': Resource});
 
 
         _converse.Presence = Backbone.Model.extend({
@@ -191,7 +191,7 @@ converse.plugins.add('converse-roster', {
                           'name': name,
                           'priority': _.isNaN(parseInt(priority, 10)) ? 0 : parseInt(priority, 10),
                           'show': _.propertyOf(presence.querySelector('show'))('textContent') || 'online',
-                          'timestamp': _.isNil(delay) ? (new Date()).toISOString() : dayjs(delay.getAttribute('stamp')).toISOString()
+                          'timestamp': delay ? dayjs(delay.getAttribute('stamp')).toISOString() : (new Date()).toISOString()
                        };
                 if (resource) {
                     resource.save(settings);
@@ -216,7 +216,7 @@ converse.plugins.add('converse-roster', {
         });
 
 
-        _converse.Presences = Backbone.Collection.extend({
+        _converse.Presences = _converse.Collection.extend({
             model: _converse.Presence,
         });
 
@@ -393,7 +393,7 @@ converse.plugins.add('converse-roster', {
          * @namespace _converse.RosterContacts
          * @memberOf _converse
          */
-        _converse.RosterContacts = Backbone.Collection.extend({
+        _converse.RosterContacts = _converse.Collection.extend({
             model: _converse.RosterContact,
 
             comparator (contact1, contact2) {
@@ -464,9 +464,10 @@ converse.plugins.add('converse-roster', {
                         });
                     });
                 } catch (e) {
-                    return _converse.log(e, Strophe.LogLevel.ERROR);
+                    _converse.log(e, Strophe.LogLevel.ERROR);
+                    _converse.session.set('roster_fetched', false)
                 }
-                if (collection.length || (this.rosterVersioningSupported() && _converse.session.get('roster_fetched'))) {
+                if (_converse.session.get('roster_fetched')) {
                     /**
                      * The contacts roster has been retrieved from the local cache (`sessionStorage`).
                      * @event _converse#cachedRoster
@@ -861,7 +862,7 @@ converse.plugins.add('converse-roster', {
         });
 
 
-        _converse.RosterGroups = Backbone.Collection.extend({
+        _converse.RosterGroups = _converse.Collection.extend({
             model: _converse.RosterGroup,
 
             comparator (a, b) {
@@ -907,9 +908,10 @@ converse.plugins.add('converse-roster', {
         };
 
 
-        /********** Event Handlers *************/
+        /******************** Event Handlers ********************/
+
         function updateUnreadCounter (chatbox) {
-            const contact = _converse.roster.findWhere({'jid': chatbox.get('jid')});
+            const contact = _converse.roster && _converse.roster.findWhere({'jid': chatbox.get('jid')});
             if (contact !== undefined) {
                 contact.save({'num_unread': chatbox.get('num_unread')});
             }
@@ -952,6 +954,18 @@ converse.plugins.add('converse-roster', {
             if (_converse.presences) {
                 _converse.presences.browserStorage._clear();
             }
+            if (_converse.shouldClearCache()) {
+                if (_converse.roster) {
+                    _.invoke(_converse, 'roster.data.destroy');
+                    _.invoke(_converse, 'roster.data.browserStorage._clear');
+                    _converse.roster.clearSession();
+                    delete _converse.roster;
+                }
+                if (_converse.rostergroups) {
+                    _converse.rostergroups.clearSession();
+                    delete _converse.rostergroups;
+                }
+            }
         });
 
         _converse.api.listen.on('statusInitialized', (reconnecting) => {
@@ -964,7 +978,7 @@ converse.plugins.add('converse-roster', {
             if (_converse.haveResumed()) {
                 _converse.presences.fetch();
             } else {
-                _converse.presences.browserStorage._clear();
+                _converse.presences.clearSession();
             }
             /**
              * Triggered once the _converse.Presences collection has been
