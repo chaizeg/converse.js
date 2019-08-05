@@ -1171,12 +1171,13 @@ converse.plugins.add('converse-chatboxes', {
                     jid = attrs.jid;
                 }
                 jid = Strophe.getBareJidFromJid(jid.toLowerCase());
-
+                // const project = attrs.project;
                 let  chatbox = this.get(Strophe.getBareJidFromJid(jid));
                 console.log(chatbox);
                 console.log(this);
                 if (!chatbox && create) {
                     Object.assign(attrs, {'jid': jid, 'id': jid});
+                    console.log('assign room');
                     chatbox = this.create(attrs, {
                         'error' (model, response) {
                             _converse.log(response.responseText);
