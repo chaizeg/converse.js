@@ -520,11 +520,14 @@ converse.plugins.add('converse-muc', {
 
             getDisplayName () {
                 const name = this.get('name');
+                console.log(name);
                 if (name) {
                     return name;
                 } else if (_converse.locked_muc_domain === 'hidden') {
+                    console.log(Strophe.getNodeFromJid(this.get('jid')));
                     return Strophe.getNodeFromJid(this.get('jid'));
                 } else {
+                    console.log(this.get('jid'));
                     return this.get('jid');
                 }
             },
@@ -537,6 +540,7 @@ converse.plugins.add('converse-muc', {
              * @param { String } [password] - Optional password, if required by the groupchat.
              */
             async join (nick, password) {
+                console.log('joined');
                 if (this.get('connection_status') === converse.ROOMSTATUS.ENTERED) {
                     // We have restored a groupchat from session storage,
                     // so we don't send out a presence stanza again.
@@ -557,6 +561,8 @@ converse.plugins.add('converse-muc', {
                     stanza.cnode(Strophe.xmlElement("password", [], password));
                 }
                 this.save('connection_status', converse.ROOMSTATUS.CONNECTING);
+                console.log('created it here');
+                console.log(stanza);
                 _converse.api.send(stanza);
                 return this;
             },
@@ -1594,6 +1600,8 @@ converse.plugins.add('converse-muc', {
              * @param { XMLElement } stanza: The presence stanza received
              */
             createInfoMessages (stanza) {
+                console.log('gotthis');
+                console.log(stanza);
                 const is_self = !_.isNull(stanza.querySelector("status[code='110']"));
                 const x = sizzle(`x[xmlns="${Strophe.NS.MUC_USER}"]`, stanza).pop();
                 if (!x) {
@@ -2155,6 +2163,9 @@ converse.plugins.add('converse-muc', {
                  * @param {object} [attrs] attrs The room attributes
                  */
                 create (jids, attrs={}) {
+                    console.log('gonna create');
+                    console.log(jids);
+                    console.log(attrs);
                     attrs = _.isString(attrs) ? {'nick': attrs} : (attrs || {});
                     if (attrs.maximize === undefined) {
                         attrs.maximize = false;
@@ -2230,6 +2241,9 @@ converse.plugins.add('converse-muc', {
                  * );
                  */
                 async open (jids, attrs, force=false) {
+                    console.log('opening up');
+                    console.log(jids);
+                    console.log(attrs);
                     await _converse.api.waitUntil('chatBoxesFetched');
                     if (jids === undefined) {
                         const err_msg = 'rooms.open: You need to provide at least one JID';

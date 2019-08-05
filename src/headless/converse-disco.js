@@ -41,6 +41,9 @@ converse.plugins.add('converse-disco', {
             idAttribute: 'jid',
 
             initialize (attrs, options) {
+                console.log('here');
+                console.log(attrs);
+                console.log(options);
                 this.waitUntilFeaturesDiscovered = utils.getResolveablePromise();
 
                 this.dataforms = new Backbone.Collection();
@@ -71,6 +74,7 @@ converse.plugins.add('converse-disco', {
                     `converse.disco-items-${this.get('jid')}`
                 );
                 this.items.fetch();
+                console.log(this);
             },
 
             /**
@@ -579,6 +583,9 @@ converse.plugins.add('converse-disco', {
                      * @example _converse.api.disco.entities.create(jid, {'ignore_cache': true});
                      */
                     create (jid, options) {
+                        console.log('disco creating');
+                        console.log(jid);
+                        console.log(options);
                         return _converse.disco_entities.create({'jid': jid}, options);
                     }
                 },
