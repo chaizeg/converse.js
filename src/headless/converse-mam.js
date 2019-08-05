@@ -11,10 +11,11 @@
  */
 import "./converse-disco";
 import "./converse-rsm";
+import { intersection, pick } from 'lodash'
 import converse from "./converse-core";
 import sizzle from "sizzle";
 
-const { Strophe, $iq, $build, _, dayjs } = converse.env;
+const { Strophe, $iq, $build, dayjs } = converse.env;
 const u = converse.env.utils;
 
 // XEP-0313 Message Archive Management
@@ -64,16 +65,17 @@ converse.plugins.add('converse-mam', {
 
         const MAMEnabledChat = {
 
+            /**
+             * Fetches messages that might have been archived *after*
+             * the last archived message in our local cache.
+             */
             fetchNewestMessages () {
-                /* Fetches messages that might have been archived *after*
-                 * the last archived message in our local cache.
-                 */
                 if (this.disable_mam) {
                     return;
                 }
                 const most_recent_msg = u.getMostRecentMessage(this);
 
-                if (_.isNil(most_recent_msg)) {
+                if (!most_recent_msg) {
                     this.fetchArchivedMessages();
                 } else {
                     const stanza_id = most_recent_msg.get(`stanza_id ${this.get('jid')}`);
@@ -101,25 +103,24 @@ converse.plugins.add('converse-mam', {
                 } else {
                     message_handler = _converse.chatboxes.onMessage.bind(_converse.chatboxes)
                 }
-                let result = {};
-                try {
-                    result = await _converse.api.archive.query(
-                        Object.assign({
-                            'groupchat': is_groupchat,
-                            'before': '', // Page backwards from the most recent message
-                            'max': _converse.archived_messages_page_size,
-                            'with': this.get('jid'),
-                        }, options));
-                } catch (e) {
-                    _converse.log(
-                        "Error or timeout while trying to fetch "+
-                        "archived messages", Strophe.LogLevel.ERROR);
-                    _converse.log(e, Strophe.LogLevel.ERROR);
-                }
-                if (result.messages) {
-                    console.log('i fetched this out :D');
-                    console.log(result);
-                    result.messages.forEach(message_handler);
+                const query = Object.assign({
+                        'groupchat': is_groupchat,
+                        'before': '', // Page backwards from the most recent message
+                        'max': _converse.archived_messages_page_size,
+                        'with': this.get('jid'),
+                    }, options);
+                const result = await _converse.api.archive.query(query);
+                result.messages.forEach(message_handler);
+
+                const catching_up = query.before || query.after;
+                if (result.rsm) {
+                    if (catching_up) {
+                        return this.fetchArchivedMessages(result.rsm.previous(_converse.archived_messages_page_size));
+                    } else {
+                        // TODO: Add a special kind of message which will
+                        // render as a link to fetch further messages, either
+                        // to fetch older messages or to fill in a gap.
+                    }
                 }
             },
 
@@ -169,7 +170,7 @@ converse.plugins.add('converse-mam', {
             }
         };
 
-        _converse.onMAMPreferences = function (feature, iq) {
+        _converse.onMAMPreferences = function (iq, feature) {
             /* Handle returned IQ stanza containing Message Archive
              * Management (XEP-0313) preferences.
              *
@@ -188,7 +189,7 @@ converse.plugins.add('converse-mam', {
                         'xmlns':Strophe.NS.MAM,
                         'default':_converse.message_archiving
                     });
-                _.each(preference.children, child => stanza.cnode(child).up());
+                Array.from(preference.children).forEach(child => stanza.cnode(child).up());
 
                 // XXX: Strictly speaking, the server should respond with the updated prefs
                 // (see example 18: https://xmpp.org/extensions/xep-0313.html#config)
@@ -209,7 +210,7 @@ converse.plugins.add('converse-mam', {
             }
             if (prefs['default'] !== _converse.message_archiving) {
                 _converse.api.sendIQ($iq({'type': 'get'}).c('prefs', {'xmlns': Strophe.NS.MAM}))
-                    .then(_.partial(_converse.onMAMPreferences, feature))
+                    .then(iq => _converse.onMAMPreferences(iq, feature))
                     .catch(_converse.onMAMError);
             }
         }
@@ -422,7 +423,7 @@ converse.plugins.add('converse-mam', {
                   * result.messages.forEach(m => this.showMessage(m));
                   *
                   */
-                'query': async function (options) {
+                async query (options) {
                     if (!_converse.api.connection.connected()) {
                         throw new Error('Can\'t call `api.archive.query` before having established an XMPP session');
                     }
@@ -467,7 +468,7 @@ converse.plugins.add('converse-mam', {
                         stanza.up();
                         if (options instanceof _converse.RSM) {
                             stanza.cnode(options.toXML());
-                        } else if (_.intersection(_converse.RSM_ATTRIBUTES, Object.keys(options)).length) {
+                        } else if (intersection(_converse.RSM_ATTRIBUTES, Object.keys(options)).length) {
                             stanza.cnode(new _converse.RSM(options).toXML());
                         }
                     }
@@ -478,33 +479,31 @@ converse.plugins.add('converse-mam', {
                             return true;
                         }
                         const result = message.querySelector('result');
-                        if (!_.isNull(result) && result.getAttribute('queryid') === queryid) {
+                        if (result !== null && result.getAttribute('queryid') === queryid) {
                             messages.push(message);
                         }
                         return true;
                     }, Strophe.NS.MAM);
 
-                    let iq;
+                    let iq_result, rsm;
                     try {
-                        iq = await _converse.api.sendIQ(stanza, _converse.message_archiving_timeout)
+                        iq_result = await _converse.api.sendIQ(stanza, _converse.message_archiving_timeout)
                     } catch (e) {
-                        _converse.connection.deleteHandler(message_handler);
-                        throw(e);
+                        _converse.log(
+                            "Error or timeout while trying to fetch "+
+                            "archived messages", Strophe.LogLevel.ERROR);
+                        _converse.log(e, Strophe.LogLevel.ERROR);
                     }
                     _converse.connection.deleteHandler(message_handler);
-                    const set = iq.querySelector('set');
-                    let rsm;
-                    if (!_.isNull(set)) {
-                        rsm = new _converse.RSM({'xml': set});
-                        Object.assign(rsm, _.pick(options, _.concat(MAM_ATTRIBUTES, ['max'])));
+                    const fin = iq_result && sizzle(`fin[xmlns="${Strophe.NS.MAM}"]`, iq_result).pop();
+                    if (fin && [null, 'false'].includes(fin.getAttribute('complete'))) {
+                        const set = sizzle(`set[xmlns="${Strophe.NS.RSM}"]`, fin).pop();
+                        if (set) {
+                            rsm = new _converse.RSM({'xml': set});
+                            Object.assign(rsm, pick(options, [...MAM_ATTRIBUTES, ..._converse.RSM_ATTRIBUTES]));
+                        }
                     }
-                    console.log('i got these');
-                    console.log(messages);
-                    console.log(rsm);
-                    return {
-                        messages,
-                        rsm
-                    }
+                    return { messages, rsm }
                 }
             }
         });

@@ -464,9 +464,10 @@ converse.plugins.add('converse-roster', {
                         });
                     });
                 } catch (e) {
-                    return _converse.log(e, Strophe.LogLevel.ERROR);
+                    _converse.log(e, Strophe.LogLevel.ERROR);
+                    _converse.session.set('roster_fetched', false)
                 }
-                if (collection.length || (this.rosterVersioningSupported() && _converse.session.get('roster_fetched'))) {
+                if (_converse.session.get('roster_fetched')) {
                     /**
                      * The contacts roster has been retrieved from the local cache (`sessionStorage`).
                      * @event _converse#cachedRoster
@@ -947,9 +948,6 @@ converse.plugins.add('converse-roster', {
                     p.save({'show': 'offline'}, {'silent': true})
                 });
             }
-            if (_converse.roster) {
-                _converse.roster.reset();
-            }
         });
 
         _converse.api.listen.on('clearSession', () => {
@@ -980,7 +978,7 @@ converse.plugins.add('converse-roster', {
             if (_converse.haveResumed()) {
                 _converse.presences.fetch();
             } else {
-                _converse.presences.browserStorage._clear();
+                _converse.presences.clearSession();
             }
             /**
              * Triggered once the _converse.Presences collection has been
