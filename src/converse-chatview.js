@@ -1148,6 +1148,7 @@ converse.plugins.add('converse-chatview', {
                 extraAttrs.reaction = reaction.innerHTML;
                 extraAttrs.reactsTo = message.getAttribute('data-msgid');
                 console.log('im sending the reaction');
+                console.log(extraAttrs);
                 this.model.sendMessage(extraAttrs.reaction, null, extraAttrs);
                 this.model.reactionInProgress = false;
                 var reactions = u.ancestor(ev.target, '.chat-msg__reactions');

@@ -708,6 +708,7 @@ converse.plugins.add('converse-chatboxes', {
                 if(message.get('reactsTo')){
                     stanza.c('reactions', {'id': message.get('reactsTo'), 'xmlns': Strophe.NS.REACTION}).c('reaction').t(message.get('message')).root();
                 }
+                console.log('sending');
                 console.log(stanza);
                 return stanza;
             },
@@ -771,10 +772,12 @@ converse.plugins.add('converse-chatboxes', {
                     message = this.messages.create(attrs);
                 }
                 if(extraAttrs && extraAttrs.reactsTo){
+                    console.log('here reactsto');
                     message.save({
                         reactsTo: extraAttrs.reactsTo
                     });
                 }
+                console.log(message);
                 _converse.api.send(this.createMessageStanza(message));
                 return message;
             },
