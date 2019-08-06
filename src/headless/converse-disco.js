@@ -407,8 +407,14 @@ converse.plugins.add('converse-disco', {
                      */
                     async getFeature (name, xmlns) {
                         await _converse.api.waitUntil('streamFeaturesAdded');
-                        if (_.isNil(name) || _.isNil(xmlns)) {
+                        if (!name || !xmlns) {
                             throw new Error("name and xmlns need to be provided when calling disco.stream.getFeature");
+                        }
+                        if (_converse.stream_features === undefined && !_converse.api.connection.connected()) {
+                            // Happens during tests when disco lookups happen asynchronously after teardown.
+                            const msg = `Tried to get feature ${name} ${xmlns} but _converse.stream_features has been torn down`;
+                            _converse.log(msg, Strophe.LogLevel.WARN);
+                            return;
                         }
                         return _converse.stream_features.findWhere({'name': name, 'xmlns': xmlns});
                     }
@@ -561,8 +567,14 @@ converse.plugins.add('converse-disco', {
                      */
                     async get (jid, create=false) {
                         await _converse.api.waitUntil('discoInitialized');
-                        if (_.isNil(jid)) {
+                        if (!jid) {
                             return _converse.disco_entities;
+                        }
+                        if (_converse.disco_entities === undefined && !_converse.api.connection.connected()) {
+                            // Happens during tests when disco lookups happen asynchronously after teardown.
+                            const msg = `Tried to look up entity ${jid} but _converse.disco_entities has been torn down`;
+                            _converse.log(msg, Strophe.LogLevel.WARN);
+                            return;
                         }
                         const entity = _converse.disco_entities.get(jid);
                         if (entity || !create) {
@@ -614,11 +626,18 @@ converse.plugins.add('converse-disco', {
                      * _converse.api.disco.features.get(Strophe.NS.MAM, _converse.bare_jid);
                      */
                     async get (feature, jid) {
-                        if (_.isNil(jid)) {
+                        if (!jid) {
                             throw new TypeError('You need to provide an entity JID');
                         }
                         await _converse.api.waitUntil('discoInitialized');
                         let entity = await _converse.api.disco.entities.get(jid, true);
+
+                        if (_converse.disco_entities === undefined && !_converse.api.connection.connected()) {
+                            // Happens during tests when disco lookups happen asynchronously after teardown.
+                            const msg = `Tried to get feature ${feature} for ${jid} but _converse.disco_entities has been torn down`;
+                            _converse.log(msg, Strophe.LogLevel.WARN);
+                            return;
+                        }
                         entity = await entity.waitUntilFeaturesDiscovered;
                         const promises = _.concat(
                             entity.items.map(item => item.hasFeature(feature)),
@@ -663,7 +682,7 @@ converse.plugins.add('converse-disco', {
                  * await _converse.api.disco.refreshFeatures('room@conference.example.org');
                  */
                 async refreshFeatures (jid) {
-                    if (_.isNil(jid)) {
+                    if (!jid) {
                         throw new TypeError('api.disco.refreshFeatures: You need to provide an entity JID');
                     }
                     await _converse.api.waitUntil('discoInitialized');
@@ -693,7 +712,7 @@ converse.plugins.add('converse-disco', {
                  * const features = await _converse.api.disco.getFeatures('room@conference.example.org');
                  */
                 async getFeatures (jid) {
-                    if (_.isNil(jid)) {
+                    if (!jid) {
                         throw new TypeError('api.disco.getFeatures: You need to provide an entity JID');
                     }
                     await _converse.api.waitUntil('discoInitialized');
@@ -714,7 +733,7 @@ converse.plugins.add('converse-disco', {
                  * const fields = await _converse.api.disco.getFields('room@conference.example.org');
                  */
                 async getFields (jid) {
-                    if (_.isNil(jid)) {
+                    if (!jid) {
                         throw new TypeError('api.disco.getFields: You need to provide an entity JID');
                     }
                     await _converse.api.waitUntil('discoInitialized');
@@ -746,16 +765,22 @@ converse.plugins.add('converse-disco', {
                  * @example
                  * _converse.api.disco.getIdentity('pubsub', 'pep', _converse.bare_jid).then(
                  *     function (identity) {
-                 *         if (_.isNil(identity)) {
-                 *             // The entity DOES NOT have this identity
-                 *         } else {
+                 *         if (identity) {
                  *             // The entity DOES have this identity
+                 *         } else {
+                 *             // The entity DOES NOT have this identity
                  *         }
                  *     }
                  * ).catch(_.partial(_converse.log, _, Strophe.LogLevel.FATAL));
                  */
                 async getIdentity (category, type, jid) {
                     const e = await _converse.api.disco.entities.get(jid, true);
+                    if (e === undefined && !_converse.api.connection.connected()) {
+                        // Happens during tests when disco lookups happen asynchronously after teardown.
+                        const msg = `Tried to look up category ${category} for ${jid} but _converse.disco_entities has been torn down`;
+                        _converse.log(msg, Strophe.LogLevel.WARN);
+                        return;
+                    }
                     return e.getIdentity(category, type);
                 }
             }
