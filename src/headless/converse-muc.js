@@ -2231,9 +2231,6 @@ converse.plugins.add('converse-muc', {
                     console.log(jids);
                     console.log(attrs);
                     attrs = _.isString(attrs) ? {'nick': attrs} : (attrs || {});
-                    if (attrs.maximize === undefined) {
-                        attrs.maximize = false;
-                    }
                     if (!attrs.nick && _converse.muc_nickname_from_jid) {
                         attrs.nick = Strophe.getNodeFromJid(_converse.bare_jid);
                     }
@@ -2265,8 +2262,7 @@ converse.plugins.add('converse-muc', {
                  *     For a list of configuration values that can be passed in, refer to these values
                  *     in the [XEP-0045 MUC specification](https://xmpp.org/extensions/xep-0045.html#registrar-formtype-owner).
                  *     The values should be named without the `muc#roomconfig_` prefix.
-                 * @param {boolean} [attrs.maximize] A boolean, indicating whether minimized rooms should also be
-                 *     maximized, when opened. Set to `false` by default.
+                 * @param {boolean} [attrs.minimized] A boolean, indicating whether the room should be opened minimized or not.
                  * @param {boolean} [attrs.bring_to_foreground] A boolean indicating whether the room should be
                  *     brought to the foreground and therefore replace the currently shown chat.
                  *     If there is no chat currently open, then this option is ineffective.

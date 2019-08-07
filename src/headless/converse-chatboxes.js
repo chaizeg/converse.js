@@ -395,6 +395,25 @@ converse.plugins.add('converse-chatboxes', {
                 }
             },
 
+            getOldestMessage () {
+                for (let i=0; i<this.messages.length; i++) {
+                    const message = this.messages.at(i);
+                    if (message.get('type') === this.get('message_type')) {
+                        return message;
+                    }
+                }
+            },
+
+
+            getMostRecentMessage () {
+                for (let i=this.messages.length-1; i>=0; i--) {
+                    const message = this.messages.at(i);
+                    if (message.get('type') === this.get('message_type')) {
+                        return message;
+                    }
+                }
+            },
+
             getUpdatedMessageAttributes (message, stanza) {
                 // Overridden in converse-muc and converse-mam
                 return {};
@@ -1166,7 +1185,8 @@ converse.plugins.add('converse-chatboxes', {
              * @method _converse.ChatBox#getChatBox
              * @param { string } jid - The JID of the user whose chat box we want
              * @param { boolean } create - Should a new chat box be created if none exists?
-             * @param { object } attrs - Optional chat box atributes.
+             * @param { object } attrs - Optional chat box atributes. If the
+             *  chat box already exists, its attributes will be updated.
              */
             getChatBox (jid, attrs={}, create) {
                 console.log('get chatbox');
@@ -1180,9 +1200,10 @@ converse.plugins.add('converse-chatboxes', {
                 jid = Strophe.getBareJidFromJid(jid.toLowerCase());
                 // const project = attrs.project;
                 let  chatbox = this.get(Strophe.getBareJidFromJid(jid));
-                console.log(chatbox);
                 console.log(this);
-                if (!chatbox && create) {
+                if (chatbox) {
+                    chatbox.save(attrs);
+                } else if (create) {
                     Object.assign(attrs, {'jid': jid, 'id': jid});
                     console.log('assign room');
                     chatbox = this.create(attrs, {
