@@ -175,7 +175,24 @@ converse.plugins.add('converse-rosterview', {
             },
 
             afterSubmission (form, jid, name) {
-                _converse.roster.addAndSubscribe(jid, name);
+                console.log(name);
+                var groups = [];
+                var str = _converse.bare_jid;
+                var domainJid = str.substring(
+                    str.indexOf("@") + 1, 
+                    str.indexOf("/") != - 1? str.indexOf("/"):str.length);
+                var domainContact = jid.substring(
+                    jid.indexOf("@") + 1, 
+                    jid.indexOf("/") != - 1? jid.indexOf("/"):jid.length);
+                if(domainJid == domainContact){
+                    groups = ['Internal'];
+                }
+                else{
+                    groups = ['External'];
+                }
+                console.log(groups);
+                console.log(name);
+                _converse.roster.addAndSubscribe(jid, name, groups);
                 this.model.clear();
                 this.modal.hide();
             },
@@ -449,6 +466,8 @@ converse.plugins.add('converse-rosterview', {
                 } else if (show === 'dnd') {
                     status_icon = 'fa fa-minus-circle chat-status chat-status--busy';
                 }
+                console.log(item);
+                console.log(item.get('groups'));
                 const display_name = item.getDisplayName();
                 this.el.innerHTML = tpl_roster_item(
                     Object.assign(item.toJSON(), {
@@ -598,6 +617,7 @@ converse.plugins.add('converse-rosterview', {
                  * If all contacts are hidden, then also hide the group
                  * title.
                  */
+                console.log(contacts);
                 let shown = 0;
                 const all_contact_views = this.getAll();
                 this.model.contacts.forEach(contact => {

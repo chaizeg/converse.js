@@ -566,7 +566,7 @@ converse.plugins.add('converse-muc', {
                 const stanza = $pres({
                     'from': _converse.connection.jid,
                     'to': this.getRoomJIDAndNick(),
-                    // 'project': this.getProject()
+                    'project': this.getProject()
                 }).c("x", {'xmlns': Strophe.NS.MUC})
                   .c("history", {'maxstanzas': this.features.get('mam_enabled') ? 0 : _converse.muc_history_max_stanzas}).up();
 

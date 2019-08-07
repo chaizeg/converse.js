@@ -182,6 +182,7 @@ converse.plugins.add('converse-roster', {
              * @param { XMLElement } presence: The presence stanza
              */
             addResource (presence) {
+                console.log(presence);
                 const jid = presence.getAttribute('from'),
                       name = Strophe.getResourceFromJid(jid),
                       delay = sizzle(`delay[xmlns="${Strophe.NS.DELAY}"]`, presence).pop(),
@@ -194,7 +195,9 @@ converse.plugins.add('converse-roster', {
                           'timestamp': delay ? dayjs(delay.getAttribute('stamp')).toISOString() : (new Date()).toISOString()
                        };
                 if (resource) {
+                    console.log(resources);
                     resource.save(settings);
+                    console.log(resources);
                 } else {
                     this.resources.create(settings);
                 }
@@ -463,6 +466,8 @@ converse.plugins.add('converse-roster', {
                             'error': reject
                         });
                     });
+                    console.log('roster contacts found:');
+                    console.log(collection);
                 } catch (e) {
                     _converse.log(e, Strophe.LogLevel.ERROR);
                     _converse.session.set('roster_fetched', false)
@@ -654,12 +659,15 @@ converse.plugins.add('converse-roster', {
                 if (this.rosterVersioningSupported()) {
                     stanza.attrs({'ver': this.data.get('version')});
                 }
+                console.log(stanza);
                 const iq = await _converse.api.sendIQ(stanza, null, false);
+                console.log(iq);
                 if (iq.getAttribute('type') !== 'error') {
                     const query = sizzle(`query[xmlns="${Strophe.NS.ROSTER}"]`, iq).pop();
                     if (query) {
                         const items = sizzle(`item`, query);
                         items.forEach(item => this.updateContact(item));
+                        console.log(items);
                         this.data.save('version', query.getAttribute('ver'));
                     }
                 } else if (!u.isServiceUnavailableError(iq)) {
@@ -888,6 +896,7 @@ converse.plugins.add('converse-roster', {
                 * Returns a promise which resolves once the groups have been
                 * returned.
                 */
+               console.log('fetching roster groups');
                 return new Promise(success => {
                     this.fetch({
                         success,
@@ -1056,6 +1065,24 @@ converse.plugins.add('converse-roster', {
                 async get (jids) {
                     await _converse.api.waitUntil('rosterContactsFetched');
                     const _getter = jid => _converse.roster.get(Strophe.getBareJidFromJid(jid));
+                    // for(var i = 0; i < jids.length; i++){
+                    //     var groups = [];
+                    //     var str = _converse.bare_jid;
+                    //     var domainJid = str.substring(
+                    //         str.indexOf("@") + 1, 
+                    //         str.indexOf("/") != - 1? str.indexOf("/"):str.length);
+                    //     var domainContact = jid.substring(
+                    //         jid.indexOf("@") + 1, 
+                    //         jid.indexOf("/") != - 1? jid.indexOf("/"):jid.length);
+                    //     if(domainJid == domainContact){
+                    //         groups = ['Internal'];
+                    //     }
+                    //     else{
+                    //         groups = ['External'];
+                    //     }
+                    //     _converse.roster.addAndSubscribe (jid, name, groups);
+                    // }
+                    
                     if (jids === undefined) {
                         jids = _converse.roster.pluck('jid');
                     } else if (_.isString(jids)) {
