@@ -1192,9 +1192,6 @@ converse.plugins.add('converse-chatboxes', {
              *  chat box already exists, its attributes will be updated.
              */
             getChatBox (jid, attrs={}, create) {
-                console.log('get chatbox');
-                console.log(jid);
-                console.log(attrs);
                 if (_.isObject(jid)) {
                     create = attrs;
                     attrs = jid;
@@ -1203,24 +1200,20 @@ converse.plugins.add('converse-chatboxes', {
                 jid = Strophe.getBareJidFromJid(jid.toLowerCase());
                 // const project = attrs.project;
                 let  chatbox = this.get(Strophe.getBareJidFromJid(jid));
-                console.log(this);
                 if (chatbox) {
                     chatbox.save(attrs);
                 } else if (create) {
                     Object.assign(attrs, {'jid': jid, 'id': jid});
-                    console.log('assign room');
                     chatbox = this.create(attrs, {
                         'error' (model, response) {
                             _converse.log(response.responseText);
                         }
                     });
-                    console.log(typeof chatbox);
                     if (!chatbox.isValid()) {
                         chatbox.destroy();
                         return null;
                     }
                 }
-                console.log(chatbox);
                 return chatbox;
             }
         });
@@ -1295,7 +1288,6 @@ converse.plugins.add('converse-chatboxes', {
                  * @param {object} [attrs] An object containing configuration attributes.
                  */
                 async create (jids, attrs) {
-                    console.log('okay creatng smth here');
                     if (_.isString(jids)) {
                         if (attrs && !_.get(attrs, 'fullname')) {
                             const contact = await _converse.api.contacts.get(jids);

@@ -69,7 +69,6 @@ converse.plugins.add('converse-roomslist', {
                 _converse.chatboxes.on('change:num_unread_general', this.onChatBoxChanged, this);
                 _converse.chatboxes.on('remove', this.onChatBoxRemoved, this);
                 this.reset(_.map(_converse.chatboxes.where({'type': _converse.CHATROOMS_TYPE}), 'attributes'));
-                console.log(this);
             },
 
             onChatBoxAdded (item) {
@@ -98,10 +97,8 @@ converse.plugins.add('converse-roomslist', {
             comparator (room) {
                 if (_converse.bookmarks && room.get('bookmarked')) {
                     const bookmark = _.head(_converse.bookmarks.where({'jid': room.get('jid')}));
-                    console.log(bookmark.get('name'));
                     return bookmark.get('name');
                 } else {
-                    console.log(room.get('name'));
                     return room.get('name');
                 }
             },
@@ -263,7 +260,6 @@ converse.plugins.add('converse-roomslist', {
             },
 
             async openRoom (ev) {
-                console.log('opening room');
                 ev.preventDefault();
                 const name = ev.target.textContent;
                 const jid = ev.target.getAttribute('data-room-jid');
@@ -546,8 +542,6 @@ converse.plugins.add('converse-roomslist', {
             const storage = _converse.config.get('storage'),
                   id = `converse.open-rooms-{_converse.bare_jid}`,
                   model = new _converse.OpenRooms();
-            console.log(model);
-            console.log(model.models);
             var internal = model.clone();
             var external = model.clone();
             internal.models = [];
@@ -559,8 +553,6 @@ converse.plugins.add('converse-roomslist', {
                     str.indexOf("/") != - 1? str.indexOf("/"):str.length);
                 var jid = model.models[i].get('jid');
                 var domainContact = jid.substring(jid.indexOf(".")+1);
-                console.log(domainContact);
-                console.log(domainJid);
                 if(domainJid == domainContact){
                     internal.models.push(model.models[i]);
                 }
@@ -568,10 +560,8 @@ converse.plugins.add('converse-roomslist', {
                     external.models.push(model.models[i]);
                 }
             }
-            console.log(internal);
-            console.log(external);
             model.browserStorage = new BrowserStorage[storage](id);
-            _converse.rooms_list_view = new _converse.RoomsListView({'model': model});
+            // _converse.rooms_list_view = new _converse.RoomsListView({'model': model});
             _converse.rooms_internal_list_view = new _converse.InternalRoomsListView({'model': internal});
             _converse.rooms_external_list_view = new _converse.ExternalRoomsListView({'model': external});
             /**

@@ -392,19 +392,15 @@ converse.plugins.add('converse-muc', {
             },
 
             async enterRoom () {
-                console.log('entering room');
                 const conn_status = this.get('connection_status');
                 _converse.log(
                     `${this.get('jid')} initialized with connection_status ${conn_status}`,
                     Strophe.LogLevel.DEBUG
                 );
                 if(this.project == null){
-                    console.log('getting it ehre');
                     this.project = this.getProject();
-                    console.log(this.project);
                 }
                 if (conn_status !==  converse.ROOMSTATUS.ENTERED) {
-                    console.log('restore room')
                     // We're not restoring a room from cache, so let's clear
                     // the cache (which might be stale).
                     this.removeNonMembers();
@@ -417,11 +413,8 @@ converse.plugins.add('converse-muc', {
                         // is a hanging chatbox (i.e. not in the collection anymore).
                         return;
                     }
-                    console.log('join');
-                    console.log(this);
                     this.join();
                 } else if (!(await this.rejoinIfNecessary())) {
-                    console.log('other case');
                     this.features.fetch();
                     this.fetchMessages();
                 }
@@ -530,16 +523,12 @@ converse.plugins.add('converse-muc', {
             },
 
             getDisplayName () {
-                console.log('here display');
                 const name = this.get('name');
-                console.log(name);
                 if (name) {
                     return name;
                 } else if (_converse.locked_muc_domain === 'hidden') {
-                    console.log(Strophe.getNodeFromJid(this.get('jid')));
                     return Strophe.getNodeFromJid(this.get('jid'));
                 } else {
-                    console.log(this.get('jid'));
                     return this.get('jid');
                 }
             },
@@ -552,7 +541,6 @@ converse.plugins.add('converse-muc', {
              * @param { String } [password] - Optional password, if required by the groupchat.
              */
             async join (nick, password) {
-                console.log('joined');
                 if (this.get('connection_status') === converse.ROOMSTATUS.ENTERED) {
                     // We have restored a groupchat from session storage,
                     // so we don't send out a presence stanza again.
@@ -575,8 +563,6 @@ converse.plugins.add('converse-muc', {
                 }
 
                 this.save('connection_status', converse.ROOMSTATUS.CONNECTING);
-                console.log('created it here');
-                console.log(stanza);
                 _converse.api.send(stanza);
                 return this;
             },
@@ -652,7 +638,6 @@ converse.plugins.add('converse-muc', {
             },
 
             getReferenceForMention (mention, index) {
-                console.log('reference');
                 const longest_match = u.getLongestSubstring(
                     mention,
                     this.occupants.map(o => o.getDisplayName())
@@ -758,22 +743,16 @@ converse.plugins.add('converse-muc', {
              * @example internal - external
              */
             getProject () {
-                console.log(_converse.bare_jid);
-                console.log(this.get('jid'));
                 if(this.get('jid')){
                     var str = _converse.bare_jid;
                     var domainJid = str.substring(
                         str.indexOf("@") + 1, 
                         str.indexOf("/") != - 1? str.indexOf("/"):str.length);
-                    console.log(domainJid);
                     var domainGC = this.get('jid').substring(this.get('jid').indexOf(".")+1);
-                    console.log(domainGC);
                     if(domainJid == domainGC){
-                        console.log('interne');
                         return 'internal';
                     }
                     else{
-                        console.log('externe');
                         return 'external';
                     }
                 }
@@ -1582,7 +1561,6 @@ converse.plugins.add('converse-muc', {
              * @param { XMLElement } stanza - The message stanza.
              */
             async onMessage (stanza) {
-                console.log('on msg');
                 this.createInfoMessages(stanza);
                 this.fetchFeaturesIfConfigurationChanged(stanza);
                 const original_stanza = stanza;
@@ -1658,8 +1636,6 @@ converse.plugins.add('converse-muc', {
              * @param { XMLElement } stanza: The presence stanza received
              */
             createInfoMessages (stanza) {
-                console.log('gotthis');
-                console.log(stanza);
                 const is_self = !_.isNull(stanza.querySelector("status[code='110']"));
                 const x = sizzle(`x[xmlns="${Strophe.NS.MUC_USER}"]`, stanza).pop();
                 if (!x) {
@@ -1667,8 +1643,6 @@ converse.plugins.add('converse-muc', {
                 }
                 const codes = sizzle('status', x).map(s => s.getAttribute('code'));
                 const project = stanza.getAttribute('project');
-                console.log(this);
-                console.log(project);
                 codes.forEach(code => {
                     let message;
                     if (code === '110' || (code === '100' && !is_self)) {
@@ -1807,7 +1781,6 @@ converse.plugins.add('converse-muc', {
                 if (stanza.getAttribute('type') === 'error') {
                     return this.onErrorPresence(stanza);
                 }
-                console.log('creatig info msgs');
                 this.createInfoMessages(stanza);
                 if (stanza.querySelector("status[code='110']")) {
                     this.onOwnPresence(stanza);
@@ -1982,7 +1955,6 @@ converse.plugins.add('converse-muc', {
             model: _converse.ChatRoomOccupant,
 
             comparator (occupant1, occupant2) {
-                console.log('je compare');
                 const role1 = occupant1.get('role') || 'none';
                 const role2 = occupant2.get('role') || 'none';
                 if (MUC_ROLE_WEIGHTS[role1] === MUC_ROLE_WEIGHTS[role2]) {
@@ -2081,7 +2053,6 @@ converse.plugins.add('converse-muc', {
                 result = true;
             } else {
                 // Invite request might come from someone not your roster list
-                console.log('invitationout');
                 contact = contact? contact.getDisplayName(): Strophe.getNodeFromJid(from);
                 if (!reason) {
                     result = confirm(
@@ -2227,9 +2198,6 @@ converse.plugins.add('converse-muc', {
                  * @param {object} [attrs] attrs The room attributes
                  */
                 create (jids, attrs={}) {
-                    console.log('gonna create');
-                    console.log(jids);
-                    console.log(attrs);
                     attrs = _.isString(attrs) ? {'nick': attrs} : (attrs || {});
                     if (!attrs.nick && _converse.muc_nickname_from_jid) {
                         attrs.nick = Strophe.getNodeFromJid(_converse.bare_jid);
@@ -2239,7 +2207,6 @@ converse.plugins.add('converse-muc', {
                     } else if (_.isString(jids)) {
                         return createChatRoom(jids, attrs);
                     }
-                    console.log('done creating');
                     return _.map(jids, _.partial(createChatRoom, _, attrs));
                 },
 
@@ -2302,9 +2269,6 @@ converse.plugins.add('converse-muc', {
                  * );
                  */
                 async open (jids, attrs, force=false) {
-                    console.log('opening up');
-                    console.log(jids);
-                    console.log(attrs);
                     await _converse.api.waitUntil('chatBoxesFetched');
                     if (jids === undefined) {
                         const err_msg = 'rooms.open: You need to provide at least one JID';

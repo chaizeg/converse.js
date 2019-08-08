@@ -1842,8 +1842,6 @@ _converse.api = {
      * _converse.api.send(msg);
      */
     send (stanza) {
-        console.log('sending this stanza');
-        console.log(stanza);
         if (_.isString(stanza)) {
             stanza = u.toStanza(stanza);
         }

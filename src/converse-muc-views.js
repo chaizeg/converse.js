@@ -244,7 +244,6 @@ converse.plugins.add('converse-muc-views', {
 
             openRoom (ev) {
                 ev.preventDefault();
-                console.log('open uuup');
                 const jid = ev.target.getAttribute('data-room-jid');
                 const name = ev.target.getAttribute('data-room-name');
                 this.modal.hide();
@@ -263,19 +262,14 @@ converse.plugins.add('converse-muc-views', {
             },
 
             roomStanzaItemToHTMLElement (groupchat) {
-                console.log('room stanza to html ');
-                console.log(this.getProject(groupchat));
                 const name = Strophe.unescapeNode(groupchat.getAttribute('name') || groupchat.getAttribute('jid'));
                 const div = document.createElement('div');
-                console.log(groupchat);
                 div.innerHTML = tpl_room_item({
                     'name': Strophe.xmlunescape(name),
                     'jid': groupchat.getAttribute('jid'),
-                    // 'nada': groupchat.getAttribute('jid'),
                     'project': this.getProject(groupchat),
                     'open_title': __('Click to open this groupchat'),
                     'info_title': __('Show more information on this groupchat'),
-                    // 'proj_gc': __('Show more information on this groupchat')
                 });
                 return div.firstElementChild;
             },
@@ -286,21 +280,16 @@ converse.plugins.add('converse-muc-views', {
              * @example internal - external
              */
             getProject (groupchat) {
-                console.log(_converse.bare_jid);
                 if(this.get('jid')){
                     var str = _converse.bare_jid;
                     var domainJid = str.substring(
                         str.indexOf("@") + 1, 
                         str.indexOf("/") != - 1? str.indexOf("/"):str.length);
-                    console.log(domainJid);
                     var domainGC = groupchat.getAttribute('jid').substring(groupchat.getAttribute('jid').indexOf(".")+1);
-                    console.log(domainGC);
                     if(domainJid == domainGC){
-                        console.log('interne');
                         return 'internal';
                     }
                     else{
-                        console.log('externe');
                         return 'external';
                     }
                 }
@@ -325,7 +314,6 @@ converse.plugins.add('converse-muc-views', {
                 const available_chatrooms = this.el.querySelector('.available-chatrooms');
                 const rooms = sizzle('query item', iq);
                 if (rooms.length) {
-                    console.log('on it');
                     available_chatrooms.innerHTML = tpl_rooms_results({'feedback_text': __('Groupchats found:')});
                     const fragment = document.createDocumentFragment();
                     rooms.map(this.roomStanzaItemToHTMLElement)
@@ -357,7 +345,6 @@ converse.plugins.add('converse-muc-views', {
                 ev.preventDefault();
                 const data = new FormData(ev.target);
                 this.model.setDomain(data.get('server'));
-                console.log('gonna show');
                 this.updateRoomsList();
             },
 
@@ -405,8 +392,6 @@ converse.plugins.add('converse-muc-views', {
 
             parseRoomDataFromEvent (form) {
                 const data = new FormData(form);
-                console.log('form details');
-                console.log(data);
                 const jid = data.get('chatroom');
                 const project = data.get('internal')!= null ? data.get('internal') : data.get('external');
                 let nick;
@@ -427,9 +412,7 @@ converse.plugins.add('converse-muc-views', {
 
             openChatRoom (ev) {
                 ev.preventDefault();
-                console.log(ev.target);
                 const data = this.parseRoomDataFromEvent(ev.target);
-                console.log(data);
                 if (data.nick === "") {
                     // Make sure defaults apply if no nick is provided.
                     data.nick = undefined;
@@ -441,7 +424,6 @@ converse.plugins.add('converse-muc-views', {
                     jid = data.jid
                     this.model.setDomain(jid);
                 }
-                console.log(jid);
                 _converse.api.rooms.open(jid, Object.assign(data, {jid}));
                 this.modal.hide();
                 ev.target.reset();
