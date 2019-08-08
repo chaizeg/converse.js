@@ -263,6 +263,7 @@ converse.plugins.add('converse-roomslist', {
             },
 
             async openRoom (ev) {
+                console.log('opening room');
                 ev.preventDefault();
                 const name = ev.target.textContent;
                 const jid = ev.target.getAttribute('data-room-jid');
