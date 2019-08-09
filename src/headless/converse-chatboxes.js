@@ -395,6 +395,25 @@ converse.plugins.add('converse-chatboxes', {
                 }
             },
 
+            getOldestMessage () {
+                for (let i=0; i<this.messages.length; i++) {
+                    const message = this.messages.at(i);
+                    if (message.get('type') === this.get('message_type')) {
+                        return message;
+                    }
+                }
+            },
+
+
+            getMostRecentMessage () {
+                for (let i=this.messages.length-1; i>=0; i--) {
+                    const message = this.messages.at(i);
+                    if (message.get('type') === this.get('message_type')) {
+                        return message;
+                    }
+                }
+            },
+
             getUpdatedMessageAttributes (message, stanza) {
                 // Overridden in converse-muc and converse-mam
                 return {};
@@ -1091,7 +1110,10 @@ converse.plugins.add('converse-chatboxes', {
                 _converse.api.trigger('chatBoxesFetched');
             },
 
-            onConnected () {
+            onConnected (reconnecting) {
+                if (reconnecting) {
+                    return;
+                }
                 const storage = _converse.config.get('storage');
                 this.browserStorage = new BrowserStorage[storage](
                     `converse.chatboxes-${_converse.bare_jid}`);
@@ -1307,7 +1329,7 @@ converse.plugins.add('converse-chatboxes', {
             _converse.api.trigger('chatBoxesInitialized');
         });
 
-        _converse.api.listen.on('presencesInitialized', () => _converse.chatboxes.onConnected());
+        _converse.api.listen.on('presencesInitialized', (reconnecting) => _converse.chatboxes.onConnected(reconnecting));
         _converse.api.listen.on('reconnected', () => _converse.chatboxes.forEach(m => m.onReconnection()));
         /************************ END Event Handlers ************************/
 

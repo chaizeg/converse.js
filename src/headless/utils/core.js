@@ -98,11 +98,6 @@ u.isSameBareJID = function (jid1, jid2) {
             Strophe.getBareJidFromJid(jid2).toLowerCase();
 };
 
-u.getMostRecentMessage = function (model) {
-    const messages = model.messages.filter('message');
-    return messages[messages.length-1];
-}
-
 u.isNewMessage = function (message) {
     /* Given a stanza, determine whether it's a new
      * message, i.e. not a MAM archived one.
@@ -162,6 +157,14 @@ u.isHeadlineMessage = function (_converse, message) {
     }
     return false;
 };
+
+
+u.isForbiddenError = function (stanza) {
+    if (!_.isElement(stanza)) {
+        return false;
+    }
+    return sizzle(`error[type="auth"] forbidden[xmlns="${Strophe.NS.STANZAS}"]`, stanza).length > 0;
+}
 
 u.isServiceUnavailableError = function (stanza) {
     if (!_.isElement(stanza)) {
