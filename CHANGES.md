@@ -1,6 +1,13 @@
 # Changelog
 
-## 5.0.0 (Unreleased)
+## 5.0.1 (Unreleased)
+
+- Add a new GUI for moderator actions. You can trigger it by entering `/modtools` in a MUC.
+- Reconnect if the server doesn't respond to a `ping` within 10 seconds.
+- Don't query for MAM MUC messages before the cached messages have been restored (another cause of duplicate messages).
+
+## 5.0.0 (2019-08-08)
+
 - BOSH support has been moved to a plugin.
 - Support for XEP-0410 to check whether we're still present in a room
 - Initial support for the [CredentialsContainer](https://developer.mozilla.org/en-US/docs/Web/API/CredentialsContainer) web API

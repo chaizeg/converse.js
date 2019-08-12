@@ -365,7 +365,7 @@ converse.plugins.add('converse-muc', {
                     'hidden': ['mobile', 'fullscreen'].includes(_converse.view_mode),
                     'message_type': 'groupchat',
                     'name': '',
-                    'project': null,
+                    'project': 'internal',
                     'nick': _converse.getDefaultMUCNickname(),
                     'num_unread': 0,
                     'roomconfig': {},
@@ -374,7 +374,7 @@ converse.plugins.add('converse-muc', {
                 }
             },
 
-            initialize() {
+            async initialize() {
                 if (_converse.vcards) {
                     this.vcard = _converse.vcards.findWhere({'jid': this.get('jid')}) ||
                         _converse.vcards.create({'jid': this.get('jid')});
@@ -389,6 +389,32 @@ converse.plugins.add('converse-muc', {
                 this.registerHandlers();
                 this.initMessages();
                 this.enterRoom();
+                // await this.occupants.fetchMembers('setProject');
+                // _converse.initRoomsListView();
+                // console.log(this.occupants);
+                // var str = _converse.bare_jid;
+                // var member;
+                // console.log(this);
+                // console.log(this.occupants.models.length);
+                // console.log(this.chatroom.occupants);
+                // console.log(this.occupants.models.length);
+                // for (var i = 0; i < this.occupants.models.length; i++){
+                //     console.log('element number '+i);
+                //     member = this.occupants.models[i].get('jid');
+                //     console.log(member);
+                //     var domainJid = str.substring(
+                //         str.indexOf("@") + 1, 
+                //         str.indexOf("/") != - 1? str.indexOf("/"):str.length);
+                //     var domainGC = member.substring(
+                //         member.indexOf("@") + 1, 
+                //         member.indexOf("/") != - 1? member.indexOf("/"):member.length);
+                //     console.log(domainJid);
+                //     console.log(domainGC);
+                //     if(domainJid != domainGC){
+                //         console.log('stranger detected');
+                //         this.set('project', 'external');
+                //     }
+                // }
             },
 
             async enterRoom () {
@@ -401,8 +427,7 @@ converse.plugins.add('converse-muc', {
                     this.project = this.getProject();
                 }
                 if (conn_status !==  converse.ROOMSTATUS.ENTERED) {
-                    // We're not restoring a room from cache, so let's clear
-                    // the cache (which might be stale).
+                    // We're not restoring a room from cache, so let's clear the potentially stale cache.
                     this.removeNonMembers();
                     await this.refreshRoomFeatures();
                     if (_converse.clear_messages_on_reconnection) {
@@ -415,6 +440,7 @@ converse.plugins.add('converse-muc', {
                     }
                     this.join();
                 } else if (!(await this.rejoinIfNecessary())) {
+                    // We've restored the room from cache and we're still joined.
                     this.features.fetch();
                     this.fetchMessages();
                 }
@@ -558,6 +584,7 @@ converse.plugins.add('converse-muc', {
                 }).c("x", {'xmlns': Strophe.NS.MUC})
                   .c("history", {'maxstanzas': this.features.get('mam_enabled') ? 0 : _converse.muc_history_max_stanzas}).up();
 
+                console.log(stanza);
                 if (password) {
                     stanza.cnode(Strophe.xmlElement("password", [], password));
                 }
@@ -1139,11 +1166,19 @@ converse.plugins.add('converse-muc', {
                     .c("query", {xmlns: Strophe.NS.MUC_ADMIN})
                         .c("item", {'affiliation': affiliation});
                 const result = await _converse.api.sendIQ(iq, null, false);
-                if (result.getAttribute('type') === 'error') {
-                    const err_msg = `Not allowed to fetch ${affiliation} list for MUC ${this.get('jid')}`;
+                if (result === null) {
+                    const err_msg = `Error: timeout while fetching ${affiliation} list for MUC ${this.get('jid')}`;
+                    const err = new Error(err_msg);
                     _converse.log(err_msg, Strophe.LogLevel.WARN);
                     _converse.log(result, Strophe.LogLevel.WARN);
-                    return null;
+                    return err;
+                }
+                if (u.isErrorStanza(result)) {
+                    const err_msg = `Error: not allowed to fetch ${affiliation} list for MUC ${this.get('jid')}`;
+                    const err = new Error(err_msg);
+                    _converse.log(err_msg, Strophe.LogLevel.WARN);
+                    _converse.log(result, Strophe.LogLevel.WARN);
+                    return err;
                 }
                 return u.parseMemberListIQ(result).filter(p => p);
             },
@@ -1164,8 +1199,8 @@ converse.plugins.add('converse-muc', {
             async updateMemberLists (members) {
                 const all_affiliations = ['member', 'admin', 'owner'];
                 const aff_lists = await Promise.all(all_affiliations.map(a => this.getAffiliationList(a)));
-                const known_affiliations = all_affiliations.filter(a => aff_lists[all_affiliations.indexOf(a)] !== null);
-                const old_members = aff_lists.reduce((acc, val) => (val !== null ? [...val, ...acc] : acc), []);
+                const known_affiliations = all_affiliations.filter(a => !u.isErrorObject(aff_lists[all_affiliations.indexOf(a)]));
+                const old_members = aff_lists.reduce((acc, val) => (u.isErrorObject(val) ? acc: [...val, ...acc]), []);
                 await this.setAffiliations(u.computeAffiliationsDelta(true, false, members, old_members));
                 if (_converse.muc_fetch_members) {
                     return this.occupants.fetchMembers();
@@ -1539,6 +1574,7 @@ converse.plugins.add('converse-muc', {
                 if (forwarded) {
                     stanza = forwarded.querySelector('message');
                 }
+
                 const message = await this.getDuplicateMessage(original_stanza);
                 if (message) {
                     this.updateMessage(message, original_stanza);
@@ -1749,6 +1785,7 @@ converse.plugins.add('converse-muc', {
              * @param { XMLElement } stanza
              */
             onPresence (stanza) {
+                console.log(stanza);
                 if (stanza.getAttribute('type') === 'error') {
                     return this.onErrorPresence(stanza);
                 }
@@ -1937,11 +1974,11 @@ converse.plugins.add('converse-muc', {
                 }
             },
 
-            async fetchMembers () {
+            async fetchMembers (arg) {
                 const all_affiliations = ['member', 'admin', 'owner'];
                 const aff_lists = await Promise.all(all_affiliations.map(a => this.chatroom.getAffiliationList(a)));
-                const new_members = aff_lists.reduce((acc, val) => (val !== null ? [...val, ...acc] : acc), []);
-                const known_affiliations = all_affiliations.filter(a => aff_lists[all_affiliations.indexOf(a)] !== null);
+                const new_members = aff_lists.reduce((acc, val) => (u.isErrorObject(val) ? acc : [...val, ...acc]), []);
+                const known_affiliations = all_affiliations.filter(a => !u.isErrorObject(aff_lists[all_affiliations.indexOf(a)]));
                 const new_jids = new_members.map(m => m.jid).filter(m => m !== undefined);
                 const new_nicks = new_members.map(m => !m.jid && m.nick || undefined).filter(m => m !== undefined);
                 const removed_members = this.filter(m => {
@@ -1968,6 +2005,39 @@ converse.plugins.add('converse-muc', {
                         this.create(attrs);
                     }
                 });
+                console.log(this);
+                if(arg !== null || arg !== undefined){
+                    var str= _converse.bare_jid;
+                    console.log(this.chatroom.occupants.models);
+                    console.log(this.chatroom.occupants.models.length);
+                    for (var i = 0; i < this.chatroom.occupants.models.length; i++){
+                        console.log('element number '+i);
+                        var member = this.chatroom.occupants.models[i].get('jid');
+                        console.log(member);
+                        if(member === undefined || member === null){
+                            this.chatroom.save({'project': 'external'});
+                            console.log(this.chatroom);
+                            return;
+                        }
+                        else{
+                            var domainJid = str.substring(
+                                str.indexOf("@") + 1, 
+                                str.indexOf("/") != - 1? str.indexOf("/"):str.length);
+                            var domainGC = member.substring(
+                                member.indexOf("@") + 1, 
+                                member.indexOf("/") != - 1? member.indexOf("/"):member.length);
+                            console.log(domainJid);
+                            console.log(domainGC);
+                            if(domainJid != domainGC){
+                                console.log('stranger detected');
+                                this.chatroom.save({'project': 'external'});
+                                console.log(this.chatroom);
+                                return;
+                            }
+                        }
+                        
+                    }
+                }
             },
 
             findOccupant (data) {

@@ -186,11 +186,12 @@ converse.plugins.add('converse-roomslist', {
 
             getRoomsListElementName () {
                 if (this.model.get('bookmarked') && _converse.bookmarks) {
-                    const bookmark = _.head(_converse.bookmarks.where({'jid': this.model.get('jid')}));
-                    return bookmark.get('name');
-                } else {
-                    return this.model.get('name');
+                    const bookmark = _converse.bookmarks.findWhere({'jid': this.model.get('jid')});
+                    if (bookmark) {
+                        return bookmark.get('name');
+                    }
                 }
+                return this.model.get('name');
             }
         });
 
@@ -542,6 +543,7 @@ converse.plugins.add('converse-roomslist', {
             const storage = _converse.config.get('storage'),
                   id = `converse.open-rooms-{_converse.bare_jid}`,
                   model = new _converse.OpenRooms();
+            console.log(model);
             var internal = model.clone();
             var external = model.clone();
             internal.models = [];
@@ -553,6 +555,14 @@ converse.plugins.add('converse-roomslist', {
                     str.indexOf("/") != - 1? str.indexOf("/"):str.length);
                 var jid = model.models[i].get('jid');
                 var domainContact = jid.substring(jid.indexOf(".")+1);
+                // if(model.models[i].get('project') == 'internal'){
+                //     console.log(model.models[i]);
+                //     console.log(model.models[i].get('project'));
+                //     internal.models.push(model.models[i]);
+                // }
+                // else{
+                //     external.models.push(model.models[i]);
+                // }
                 if(domainJid == domainContact){
                     internal.models.push(model.models[i]);
                 }
@@ -560,6 +570,8 @@ converse.plugins.add('converse-roomslist', {
                     external.models.push(model.models[i]);
                 }
             }
+            console.log(internal);
+            console.log(external);
             model.browserStorage = new BrowserStorage[storage](id);
             // _converse.rooms_list_view = new _converse.RoomsListView({'model': model});
             _converse.rooms_internal_list_view = new _converse.InternalRoomsListView({'model': internal});

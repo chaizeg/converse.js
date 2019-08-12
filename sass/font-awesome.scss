@@ -50,6 +50,7 @@
   url('../webfonts/fa-solid-900.ttf') format('truetype');
 }
 
+
 @import "@fortawesome/fontawesome-free/scss/variables";
 @import "@fortawesome/fontawesome-free/scss/mixins";
 @import "@fortawesome/fontawesome-free/scss/core";
@@ -63,7 +64,8 @@
 @import "@fortawesome/fontawesome-free/scss/icons";
 @import "@fortawesome/fontawesome-free/scss/screen-reader";
 
-#conversejs {
+#conversejs, .converse-website {
+  /* Apparent font-awesome bug? The circle has some kind of bottom margin */
   .far {
     font-family: 'ConverseFontAwesomeRegular' !important;
     font-weight: 400;
@@ -85,7 +87,6 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
   }
-  /* Apparent font-awesome bug? The circle has some kind of bottom margin */
   .fa-info-circle {
       height: 1em;
   }
