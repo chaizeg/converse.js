@@ -389,11 +389,13 @@ converse.plugins.add('converse-muc', {
                 this.registerHandlers();
                 this.initMessages();
                 this.enterRoom();
-                // await this.occupants.fetchMembers('setProject');
+                await this.occupants.fetchMembers('setProject');
                 // _converse.initRoomsListView();
                 // console.log(this.occupants);
                 // var str = _converse.bare_jid;
                 // var member;
+
+
                 // console.log(this);
                 // console.log(this.occupants.models.length);
                 // console.log(this.chatroom.occupants);
@@ -2017,7 +2019,7 @@ converse.plugins.add('converse-muc', {
                         if(member === undefined || member === null){
                             this.chatroom.save({'project': 'external'});
                             console.log(this.chatroom);
-                            return;
+                            break;
                         }
                         else{
                             var domainJid = str.substring(
@@ -2032,11 +2034,13 @@ converse.plugins.add('converse-muc', {
                                 console.log('stranger detected');
                                 this.chatroom.save({'project': 'external'});
                                 console.log(this.chatroom);
-                                return;
+                                break;
                             }
                         }
                         
                     }
+                    // initRoomsListView();
+                    // console.log(model);
                 }
             },
 

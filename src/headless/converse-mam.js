@@ -115,10 +115,12 @@ converse.plugins.add('converse-mam', {
                 if (!(await _converse.api.disco.supports(Strophe.NS.MAM, mam_jid))) {
                     return;
                 }
+                console.log('fetching archived messages');
                 const message_handler = is_groupchat ?
                     this.onMessage.bind(this) :
                     _converse.chatboxes.onMessage.bind(_converse.chatboxes);
 
+                
                 const query = Object.assign({
                         'groupchat': is_groupchat,
                         'max': _converse.archived_messages_page_size,

@@ -540,6 +540,11 @@ converse.plugins.add('converse-roomslist', {
         });
 
         const initRoomsListView = function () {
+            var roomLists = document.getElementsByClassName('rooms-list-container');
+            for(var i= 0; i < roomLists.length; i++){
+                console.log('cleared out');
+                roomLists[i].innerHTML = '';
+            }
             const storage = _converse.config.get('storage'),
                   id = `converse.open-rooms-{_converse.bare_jid}`,
                   model = new _converse.OpenRooms();
@@ -555,20 +560,20 @@ converse.plugins.add('converse-roomslist', {
                     str.indexOf("/") != - 1? str.indexOf("/"):str.length);
                 var jid = model.models[i].get('jid');
                 var domainContact = jid.substring(jid.indexOf(".")+1);
-                // if(model.models[i].get('project') == 'internal'){
-                //     console.log(model.models[i]);
-                //     console.log(model.models[i].get('project'));
-                //     internal.models.push(model.models[i]);
-                // }
-                // else{
-                //     external.models.push(model.models[i]);
-                // }
-                if(domainJid == domainContact){
+                if(model.models[i].get('project') == 'internal'){
+                    console.log(model.models[i]);
+                    console.log(model.models[i].get('project'));
                     internal.models.push(model.models[i]);
                 }
                 else{
                     external.models.push(model.models[i]);
                 }
+                // if(domainJid == domainContact){
+                //     internal.models.push(model.models[i]);
+                // }
+                // else{
+                //     external.models.push(model.models[i]);
+                // }
             }
             console.log(internal);
             console.log(external);
@@ -594,8 +599,11 @@ converse.plugins.add('converse-roomslist', {
                 ]);
             }
             initRoomsListView();
+            // var reListRooms = setInterval(initRoomsListView, 2000);
+            // clearInterval(reListRooms);
         });
 
+        
         _converse.api.listen.on('reconnected', initRoomsListView);
     }
 });
